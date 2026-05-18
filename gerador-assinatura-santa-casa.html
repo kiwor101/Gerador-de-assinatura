@@ -147,6 +147,30 @@
       white-space: nowrap;
     }
 
+    .suffix-field {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+    }
+
+    .suffix-field input {
+      border-radius: 6px 0 0 6px;
+    }
+
+    .suffix {
+      display: inline-flex;
+      align-items: center;
+      height: 42px;
+      border: 1px solid #cfd6df;
+      border-left: 0;
+      border-radius: 0 6px 6px 0;
+      background: #f4f7fa;
+      color: #526070;
+      padding: 0 10px;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
     .preset-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -181,11 +205,20 @@
       text-align: left;
     }
 
-    .logo-card-actions {
+    .logo-select {
       display: grid;
-      grid-template-columns: 1fr auto;
       gap: 6px;
-      align-items: center;
+      min-height: 100px;
+      border: 0;
+      background: transparent;
+      padding: 0;
+      color: var(--ink);
+      text-align: left;
+    }
+
+    .logo-card-actions {
+      display: flex;
+      justify-content: flex-end;
     }
 
     .logo-delete {
@@ -219,9 +252,6 @@
 
     .logo-name {
       overflow: hidden;
-      min-height: 28px;
-      border: 0;
-      background: transparent;
       color: #304057;
       font-size: 11px;
       font-weight: 700;
@@ -336,12 +366,18 @@
 
       <div class="field">
         <label for="email">Email</label>
-        <input id="email">
+        <div class="suffix-field">
+          <input id="email">
+          <span class="suffix">@santacasaandradina.org</span>
+        </div>
       </div>
 
       <div class="field">
         <label for="teams">Teams</label>
-        <input id="teams">
+        <div class="suffix-field">
+          <input id="teams">
+          <span class="suffix">@santacasaandradina.org</span>
+        </div>
       </div>
 
       <div class="field">
@@ -414,6 +450,7 @@
     const fixedPhone = "(18) 3702-1100";
     const fixedSite = "www.santacasaandradina.com.br";
     const fixedAddress = "Av. Guanabara, 730 - Centro, Andradina - SP, 16901-901";
+    const fixedEmailDomain = "@santacasaandradina.org";
     const fields = ["name", "role", "department", "extension", "email", "teams", "layout", "name-color", "text-color", "label-color", "bar-color"];
     const savedLogoStorageKey = "santa-casa-uploaded-logos";
     const selectedLogoStorageKey = "santa-casa-selected-logo";
@@ -517,12 +554,14 @@
         const canDelete = isUploadedLogo(logo.src);
         item.className = "logo-option" + (logo.src === logoSource ? " active" : "");
         item.innerHTML =
-          '<span class="logo-thumb"><img src="' + logo.src + '" alt=""></span>' +
+          '<button type="button" class="logo-select">' +
+            '<span class="logo-thumb"><img src="' + logo.src + '" alt=""></span>' +
+            '<span class="logo-name">' + escapeHtml(logo.name) + '</span>' +
+          '</button>' +
           '<span class="logo-card-actions">' +
-            '<button type="button" class="logo-name">' + escapeHtml(logo.name) + '</button>' +
             (canDelete ? '<button type="button" class="logo-delete">Excluir</button>' : '') +
           '</span>';
-        item.querySelector(".logo-name").addEventListener("click", () => selectLogo(logo.src, "Logo selecionado."));
+        item.querySelector(".logo-select").addEventListener("click", () => selectLogo(logo.src, "Logo selecionado."));
         const deleteButton = item.querySelector(".logo-delete");
         if (deleteButton) {
           deleteButton.addEventListener("click", () => deleteLogo(logo.src));
@@ -578,14 +617,21 @@
       return role || department || "";
     }
 
+    function withFixedDomain(text) {
+      const value = text.trim();
+      if (!value) return "";
+      const prefix = value.includes("@") ? value.split("@")[0] : value;
+      return prefix + fixedEmailDomain;
+    }
+
     function signatureHtml() {
       const layout = currentLayout();
       const name = escapeHtml(value("name"));
       const role = escapeHtml(roleLine());
       const phone = escapeHtml(fixedPhone);
       const extension = escapeHtml(value("extension"));
-      const email = escapeHtml(value("email"));
-      const teams = escapeHtml(value("teams") || email);
+      const email = escapeHtml(withFixedDomain(value("email")));
+      const teams = escapeHtml(withFixedDomain(value("teams")) || withFixedDomain(value("email")));
       const logo = escapeHtml(logoSource);
       const nameColor = color("name-color", "#09275c");
       const textColor = color("text-color", "#2f3b4a");
@@ -702,8 +748,8 @@
 
       const rows = [
         ["Telefone:", fixedPhone + (value("extension") ? " | Ramal: " + value("extension") : "")],
-        ["Email:", value("email")],
-        ["Teams:", value("teams") || value("email")],
+        ["Email:", withFixedDomain(value("email"))],
+        ["Teams:", withFixedDomain(value("teams")) || withFixedDomain(value("email"))],
         ["Site:", fixedSite],
         ["Endereco:", fixedAddress]
       ];
