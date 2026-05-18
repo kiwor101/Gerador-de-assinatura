@@ -181,6 +181,22 @@
       text-align: left;
     }
 
+    .logo-card-actions {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .logo-delete {
+      min-height: 28px;
+      border: 1px solid #f0c8c8;
+      background: #fff1f1;
+      color: #9b1c1c;
+      font-size: 11px;
+      padding: 0 8px;
+    }
+
     .logo-option.active {
       border-color: var(--gold);
       box-shadow: 0 0 0 3px rgba(185, 138, 36, 0.16);
@@ -203,9 +219,15 @@
 
     .logo-name {
       overflow: hidden;
+      min-height: 28px;
+      border: 0;
+      background: transparent;
       color: #304057;
       font-size: 11px;
+      font-weight: 700;
       line-height: 14px;
+      padding: 0;
+      text-align: left;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
@@ -294,32 +316,42 @@
 
       <div class="field">
         <label for="name">Nome completo</label>
-        <input id="name" value="Nome do Colaborador">
+        <input id="name">
       </div>
 
       <div class="field">
-        <label for="role">Cargo / setor</label>
-        <input id="role" value="Cargo | Setor">
+        <label for="role">Cargo</label>
+        <input id="role">
+      </div>
+
+      <div class="field">
+        <label for="department">Setor</label>
+        <input id="department">
       </div>
 
       <div class="field">
         <label for="extension">Ramal</label>
-        <input id="extension" value="123">
+        <input id="extension">
       </div>
 
       <div class="field">
         <label for="email">Email</label>
-        <input id="email" value="nome@santacasaandradina.com.br">
+        <input id="email">
       </div>
 
       <div class="field">
         <label for="teams">Teams</label>
-        <input id="teams" value="nome@santacasaandradina.com.br">
+        <input id="teams">
       </div>
 
       <div class="field">
         <label>Logos salvos</label>
         <div class="logo-library" id="logo-library"></div>
+      </div>
+
+      <div class="field">
+        <label for="logo-name">Nome da nova logo</label>
+        <input id="logo-name">
       </div>
 
       <div class="field">
@@ -382,7 +414,7 @@
     const fixedPhone = "(18) 3702-1100";
     const fixedSite = "www.santacasaandradina.com.br";
     const fixedAddress = "Av. Guanabara, 730 - Centro, Andradina - SP, 16901-901";
-    const fields = ["name", "role", "extension", "email", "teams", "layout", "name-color", "text-color", "label-color", "bar-color"];
+    const fields = ["name", "role", "department", "extension", "email", "teams", "layout", "name-color", "text-color", "label-color", "bar-color"];
     const savedLogoStorageKey = "santa-casa-uploaded-logos";
     const selectedLogoStorageKey = "santa-casa-selected-logo";
     const logoLibrary = [
@@ -466,6 +498,10 @@
       return logoLibrary.concat(uploadedLogos);
     }
 
+    function isUploadedLogo(src) {
+      return uploadedLogos.some((logo) => logo.src === src);
+    }
+
     function selectLogo(src, message) {
       logoSource = src;
       localStorage.setItem(selectedLogoStorageKey, src);
@@ -477,15 +513,34 @@
     function renderLogoLibrary() {
       logoLibraryElement.innerHTML = "";
       allLogos().forEach((logo) => {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "logo-option" + (logo.src === logoSource ? " active" : "");
-        button.innerHTML =
+        const item = document.createElement("div");
+        const canDelete = isUploadedLogo(logo.src);
+        item.className = "logo-option" + (logo.src === logoSource ? " active" : "");
+        item.innerHTML =
           '<span class="logo-thumb"><img src="' + logo.src + '" alt=""></span>' +
-          '<span class="logo-name">' + escapeHtml(logo.name) + '</span>';
-        button.addEventListener("click", () => selectLogo(logo.src, "Logo selecionado."));
-        logoLibraryElement.appendChild(button);
+          '<span class="logo-card-actions">' +
+            '<button type="button" class="logo-name">' + escapeHtml(logo.name) + '</button>' +
+            (canDelete ? '<button type="button" class="logo-delete">Excluir</button>' : '') +
+          '</span>';
+        item.querySelector(".logo-name").addEventListener("click", () => selectLogo(logo.src, "Logo selecionado."));
+        const deleteButton = item.querySelector(".logo-delete");
+        if (deleteButton) {
+          deleteButton.addEventListener("click", () => deleteLogo(logo.src));
+        }
+        logoLibraryElement.appendChild(item);
       });
+    }
+
+    function deleteLogo(src) {
+      uploadedLogos = uploadedLogos.filter((logo) => logo.src !== src);
+      saveUploadedLogos();
+      if (logoSource === src) {
+        logoSource = logoLibrary[0].src;
+        localStorage.setItem(selectedLogoStorageKey, logoSource);
+      }
+      status.textContent = "Logo excluida.";
+      renderLogoLibrary();
+      render();
     }
 
     function value(id) {
@@ -516,13 +571,20 @@
       return layouts[value("layout")] || layouts.classic;
     }
 
+    function roleLine() {
+      const role = value("role");
+      const department = value("department");
+      if (role && department) return role + " | " + department;
+      return role || department || "";
+    }
+
     function signatureHtml() {
       const layout = currentLayout();
-      const name = escapeHtml(value("name") || "Nome do Colaborador");
-      const role = escapeHtml(value("role") || "Cargo | Setor");
+      const name = escapeHtml(value("name"));
+      const role = escapeHtml(roleLine());
       const phone = escapeHtml(fixedPhone);
       const extension = escapeHtml(value("extension"));
-      const email = escapeHtml(value("email") || "nome@santacasaandradina.com.br");
+      const email = escapeHtml(value("email"));
       const teams = escapeHtml(value("teams") || email);
       const logo = escapeHtml(logoSource);
       const nameColor = color("name-color", "#09275c");
@@ -627,12 +689,12 @@
       ctx.fillStyle = barColor;
       ctx.fillRect(layout.logoCell, top, 1, 120);
 
-      drawText(ctx, value("name") || "Nome do Colaborador", textX, y, {
+      drawText(ctx, value("name"), textX, y, {
         color: nameColor,
         font: "700 " + layout.nameSize + "px Arial"
       });
       y += layout.nameSize + 8;
-      drawText(ctx, value("role") || "Cargo | Setor", textX, y, {
+      drawText(ctx, roleLine(), textX, y, {
         color: "#5b6470",
         font: layout.roleSize + "px Arial"
       });
@@ -640,8 +702,8 @@
 
       const rows = [
         ["Telefone:", fixedPhone + (value("extension") ? " | Ramal: " + value("extension") : "")],
-        ["Email:", value("email") || "nome@santacasaandradina.com.br"],
-        ["Teams:", value("teams") || value("email") || "nome@santacasaandradina.com.br"],
+        ["Email:", value("email")],
+        ["Teams:", value("teams") || value("email")],
         ["Site:", fixedSite],
         ["Endereco:", fixedAddress]
       ];
@@ -743,14 +805,16 @@
 
       const reader = new FileReader();
       reader.addEventListener("load", () => {
+        const customName = value("logo-name");
         const uploadedLogo = {
-          name: file.name,
+          name: customName || file.name,
           src: reader.result
         };
         uploadedLogos = uploadedLogos.filter((logo) => logo.name !== uploadedLogo.name);
         uploadedLogos.unshift(uploadedLogo);
         saveUploadedLogos();
         selectLogo(uploadedLogo.src, "Logo adicionada e selecionada.");
+        document.getElementById("logo-name").value = "";
         event.target.value = "";
       });
       reader.readAsDataURL(file);
