@@ -407,27 +407,27 @@
       <div class="color-grid">
         <div class="color-field">
           <span>Nome</span>
-          <input id="name-color" type="color" value="#09275c">
+          <input id="name-color" type="color" value="#0b2f66">
         </div>
         <div class="color-field">
           <span>Textos</span>
-          <input id="text-color" type="color" value="#2f3b4a">
+          <input id="text-color" type="color" value="#1f2933">
         </div>
         <div class="color-field">
           <span>Rotulos</span>
-          <input id="label-color" type="color" value="#b98a24">
+          <input id="label-color" type="color" value="#005daa">
         </div>
         <div class="color-field">
           <span>Barra</span>
-          <input id="bar-color" type="color" value="#b98a24">
+          <input id="bar-color" type="color" value="#005daa">
         </div>
       </div>
 
       <div class="preset-grid">
         <button class="preset" type="button" data-preset="default">Padrao</button>
-        <button class="preset" type="button" data-preset="pink">Rosa</button>
         <button class="preset" type="button" data-preset="blue">Azul</button>
-        <button class="preset" type="button" data-preset="green">Verde</button>
+        <button class="preset" type="button" data-preset="navy">Azul escuro</button>
+        <button class="preset" type="button" data-preset="cyan">Azul claro</button>
       </div>
 
       <div class="actions">
@@ -453,13 +453,15 @@
     const fixedEmailDomain = "@santacasaandradina.org";
     const fields = ["name", "role", "department", "extension", "email", "teams", "layout", "name-color", "text-color", "label-color", "bar-color"];
     const savedLogoStorageKey = "santa-casa-uploaded-logos";
-    const selectedLogoStorageKey = "santa-casa-selected-logo";
+    const selectedLogoStorageKey = "santa-casa-selected-logo-v2";
     const logoLibrary = [
-      { name: "Opcao 2 - Classica azul e dourado", src: "assets/logos/opcao-2-logo-santa-casa.png" },
+      { name: "Original", src: "assets/logos/logo-upload-original.jpg" },
+      { name: "Original 1", src: "assets/logos/original-1-logo-santa-casa.png" },
+      { name: "Original 2", src: "assets/logos/original-2-logo-santa-casa.jpg" },
+      { name: "Original 3", src: "assets/logos/original-3-logo-santa-casa.png" },
       { name: "Opcao 1 - Cinza horizontal", src: "assets/logos/opcao-1-logo-santa-casa.png" },
       { name: "Opcao 3 - Bordo vertical", src: "assets/logos/opcao-3-logo-santa-casa.png" },
-      { name: "Opcao 4 - Azul e verde", src: "assets/logos/opcao-4-logo-santa-casa.png" },
-      { name: "Logo enviado original", src: "assets/logos/logo-upload-original.jpg" }
+      { name: "Opcao 4 - Azul e verde", src: "assets/logos/opcao-4-logo-santa-casa.png" }
     ];
     const layouts = {
       classic: {
@@ -487,32 +489,33 @@
     };
     const presets = {
       default: {
-        nameColor: "#09275c",
-        textColor: "#2f3b4a",
-        labelColor: "#b98a24",
-        barColor: "#b98a24"
-      },
-      pink: {
-        nameColor: "#8a1f5d",
-        textColor: "#3a3038",
-        labelColor: "#c21873",
-        barColor: "#c21873"
+        nameColor: "#0b2f66",
+        textColor: "#1f2933",
+        labelColor: "#005daa",
+        barColor: "#005daa"
       },
       blue: {
-        nameColor: "#09275c",
-        textColor: "#273447",
-        labelColor: "#1769aa",
-        barColor: "#1769aa"
+        nameColor: "#005daa",
+        textColor: "#263747",
+        labelColor: "#008dcc",
+        barColor: "#008dcc"
       },
-      green: {
-        nameColor: "#0b3d2e",
-        textColor: "#263832",
-        labelColor: "#16805d",
-        barColor: "#16805d"
+      navy: {
+        nameColor: "#06265a",
+        textColor: "#1f2933",
+        labelColor: "#0b4c92",
+        barColor: "#0b4c92"
+      },
+      cyan: {
+        nameColor: "#0878b8",
+        textColor: "#243746",
+        labelColor: "#1296d4",
+        barColor: "#1296d4"
       }
     };
     let uploadedLogos = loadUploadedLogos();
-    let logoSource = localStorage.getItem(selectedLogoStorageKey) || logoLibrary[0].src;
+    const storedLogoSource = localStorage.getItem(selectedLogoStorageKey);
+    let logoSource = logoLibrary.concat(uploadedLogos).some((logo) => logo.src === storedLogoSource) ? storedLogoSource : logoLibrary[0].src;
     const preview = document.getElementById("preview");
     const output = document.getElementById("html-output");
     const status = document.getElementById("status");
