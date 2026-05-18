@@ -1,0 +1,774 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gerador de Assinatura - Santa Casa</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --blue: #09275c;
+      --gold: #b98a24;
+      --gold-soft: #d7c08a;
+      --ink: #253142;
+      --muted: #697282;
+      --line: #dfe4ea;
+      --surface: #f6f8fb;
+      --white: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--surface);
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: minmax(320px, 420px) minmax(520px, 1fr);
+      gap: 24px;
+      width: min(1180px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 28px 0;
+    }
+
+    .panel {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(9, 39, 92, 0.08);
+    }
+
+    .form-panel {
+      padding: 22px;
+    }
+
+    .preview-panel {
+      min-width: 0;
+      padding: 22px;
+    }
+
+    h1 {
+      margin: 0 0 4px;
+      color: var(--blue);
+      font-size: 22px;
+      line-height: 28px;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 0 0 20px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 18px;
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+      margin-bottom: 14px;
+    }
+
+    label {
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    input,
+    select {
+      width: 100%;
+      height: 42px;
+      border: 1px solid #cfd6df;
+      border-radius: 6px;
+      padding: 0 12px;
+      color: var(--ink);
+      font: 14px Arial, Helvetica, sans-serif;
+      outline: none;
+    }
+
+    select {
+      background: #ffffff;
+      cursor: pointer;
+    }
+
+    input[type="color"] {
+      width: 54px;
+      min-width: 54px;
+      padding: 4px;
+      cursor: pointer;
+    }
+
+    input[type="file"] {
+      height: auto;
+      min-height: 42px;
+      padding: 9px 12px;
+      background: #ffffff;
+    }
+
+    input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(185, 138, 36, 0.16);
+    }
+
+    .color-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .color-field {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      min-width: 0;
+      border: 1px solid #cfd6df;
+      border-radius: 6px;
+      padding: 8px 10px;
+      background: #ffffff;
+    }
+
+    .color-field span {
+      overflow: hidden;
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 700;
+      text-overflow: ellipsis;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 8px 0 14px;
+    }
+
+    .preset {
+      background: #f2f5f8;
+      color: var(--blue);
+      border: 1px solid #d7dde6;
+    }
+
+    .logo-library {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      max-height: 360px;
+      overflow: auto;
+      padding: 2px 2px 10px;
+    }
+
+    .logo-option {
+      display: grid;
+      gap: 6px;
+      min-height: 118px;
+      border: 1px solid #d5dce5;
+      border-radius: 6px;
+      background: #ffffff;
+      padding: 8px;
+      color: var(--ink);
+      text-align: left;
+    }
+
+    .logo-option.active {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(185, 138, 36, 0.16);
+    }
+
+    .logo-thumb {
+      display: grid;
+      place-items: center;
+      height: 72px;
+      background: #f8fafc;
+      border: 1px solid #edf1f5;
+      border-radius: 4px;
+    }
+
+    .logo-thumb img {
+      max-width: 100%;
+      max-height: 64px;
+      object-fit: contain;
+    }
+
+    .logo-name {
+      overflow: hidden;
+      color: #304057;
+      font-size: 11px;
+      line-height: 14px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    button {
+      min-height: 42px;
+      border: 0;
+      border-radius: 6px;
+      padding: 0 14px;
+      font: 700 13px Arial, Helvetica, sans-serif;
+      cursor: pointer;
+    }
+
+    .primary {
+      background: var(--blue);
+      color: var(--white);
+    }
+
+    .secondary {
+      background: #efe5cc;
+      color: #6f4f12;
+    }
+
+    .wide {
+      grid-column: 1 / -1;
+    }
+
+    .status {
+      min-height: 18px;
+      margin-top: 12px;
+      color: #23613b;
+      font-size: 12px;
+      line-height: 18px;
+    }
+
+    .section-title {
+      margin: 0 0 12px;
+      color: var(--blue);
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 20px;
+    }
+
+    .preview-box {
+      overflow-x: auto;
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 210px;
+      margin-top: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      resize: vertical;
+      color: #26313f;
+      font: 12px Consolas, "Courier New", monospace;
+      line-height: 17px;
+    }
+
+    @media (max-width: 900px) {
+      .app {
+        grid-template-columns: 1fr;
+        width: min(720px, calc(100% - 28px));
+        padding: 18px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="panel form-panel">
+      <h1>Gerador de Assinatura</h1>
+      <p class="subtitle">Preencha os campos e copie a assinatura pronta para o usu&aacute;rio.</p>
+
+      <div class="field">
+        <label for="name">Nome completo</label>
+        <input id="name" value="Nome do Colaborador">
+      </div>
+
+      <div class="field">
+        <label for="role">Cargo / setor</label>
+        <input id="role" value="Cargo | Setor">
+      </div>
+
+      <div class="field">
+        <label for="extension">Ramal</label>
+        <input id="extension" value="123">
+      </div>
+
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" value="nome@santacasaandradina.com.br">
+      </div>
+
+      <div class="field">
+        <label for="teams">Teams</label>
+        <input id="teams" value="nome@santacasaandradina.com.br">
+      </div>
+
+      <div class="field">
+        <label>Logos salvos</label>
+        <div class="logo-library" id="logo-library"></div>
+      </div>
+
+      <div class="field">
+        <label for="logo">Adicionar nova logo</label>
+        <input id="logo" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
+      </div>
+
+      <div class="field">
+        <label for="layout">Modelo HTML</label>
+        <select id="layout">
+          <option value="classic">Outlook Classic</option>
+          <option value="web">Outlook Web compacto</option>
+        </select>
+      </div>
+
+      <label>Cores da assinatura</label>
+      <div class="color-grid">
+        <div class="color-field">
+          <span>Nome</span>
+          <input id="name-color" type="color" value="#09275c">
+        </div>
+        <div class="color-field">
+          <span>Textos</span>
+          <input id="text-color" type="color" value="#2f3b4a">
+        </div>
+        <div class="color-field">
+          <span>Rotulos</span>
+          <input id="label-color" type="color" value="#b98a24">
+        </div>
+        <div class="color-field">
+          <span>Barra</span>
+          <input id="bar-color" type="color" value="#b98a24">
+        </div>
+      </div>
+
+      <div class="preset-grid">
+        <button class="preset" type="button" data-preset="default">Padrao</button>
+        <button class="preset" type="button" data-preset="pink">Rosa</button>
+        <button class="preset" type="button" data-preset="blue">Azul</button>
+        <button class="preset" type="button" data-preset="green">Verde</button>
+      </div>
+
+      <div class="actions">
+        <button class="primary" type="button" id="copy-signature">Copiar assinatura</button>
+        <button class="secondary" type="button" id="copy-html">Copiar HTML</button>
+        <button class="secondary wide" type="button" id="copy-image">Copiar como imagem PNG</button>
+        <button class="secondary wide" type="button" id="download-image">Baixar imagem PNG</button>
+      </div>
+      <div class="status" id="status" aria-live="polite"></div>
+    </section>
+
+    <section class="panel preview-panel">
+      <p class="section-title">Pr&eacute;via</p>
+      <div class="preview-box" id="preview"></div>
+      <textarea id="html-output" aria-label="HTML gerado"></textarea>
+    </section>
+  </main>
+
+  <script>
+    const fixedPhone = "(18) 3702-1100";
+    const fixedSite = "www.santacasaandradina.com.br";
+    const fixedAddress = "Av. Guanabara, 730 - Centro, Andradina - SP, 16901-901";
+    const fields = ["name", "role", "extension", "email", "teams", "layout", "name-color", "text-color", "label-color", "bar-color"];
+    const savedLogoStorageKey = "santa-casa-uploaded-logos";
+    const selectedLogoStorageKey = "santa-casa-selected-logo";
+    const logoLibrary = [
+      { name: "Opcao 2 - Classica azul e dourado", src: "assets/logos/opcao-2-logo-santa-casa.png" },
+      { name: "Opcao 1 - Cinza horizontal", src: "assets/logos/opcao-1-logo-santa-casa.png" },
+      { name: "Opcao 3 - Bordo vertical", src: "assets/logos/opcao-3-logo-santa-casa.png" },
+      { name: "Opcao 4 - Azul e verde", src: "assets/logos/opcao-4-logo-santa-casa.png" },
+      { name: "Moderno teal", src: "assets/logos/01-logo-santa-casa-moderno-teal.png" },
+      { name: "Classico navy gold", src: "assets/logos/02-logo-santa-casa-classico-navy-gold.png" },
+      { name: "Bordo dourado", src: "assets/logos/03-logo-santa-casa-bordo-dourado.png" },
+      { name: "Emblema azul verde", src: "assets/logos/04-logo-santa-casa-emblema-azul-verde.png" },
+      { name: "Vertical verde", src: "assets/logos/05-logo-santa-casa-vertical-verde.png" },
+      { name: "Assinatura roxo turquesa", src: "assets/logos/06-logo-santa-casa-assinatura-roxo-turquesa.png" },
+      { name: "Institucional azul coral", src: "assets/logos/07-logo-santa-casa-institucional-azul-coral.png" },
+      { name: "Linha cinza verde", src: "assets/logos/08-logo-santa-casa-linha-cinza-verde.png" },
+      { name: "Logo enviado original", src: "assets/logos/logo-upload-original.jpg" }
+    ];
+    const layouts = {
+      classic: {
+        width: 620,
+        logoCell: 210,
+        logoWidth: 190,
+        gap: 22,
+        labelWidth: 68,
+        nameSize: 19,
+        textSize: 13,
+        roleSize: 13,
+        footerSize: 11
+      },
+      web: {
+        width: 560,
+        logoCell: 175,
+        logoWidth: 155,
+        gap: 16,
+        labelWidth: 58,
+        nameSize: 16,
+        textSize: 11,
+        roleSize: 11,
+        footerSize: 10
+      }
+    };
+    const presets = {
+      default: {
+        nameColor: "#09275c",
+        textColor: "#2f3b4a",
+        labelColor: "#b98a24",
+        barColor: "#b98a24"
+      },
+      pink: {
+        nameColor: "#8a1f5d",
+        textColor: "#3a3038",
+        labelColor: "#c21873",
+        barColor: "#c21873"
+      },
+      blue: {
+        nameColor: "#09275c",
+        textColor: "#273447",
+        labelColor: "#1769aa",
+        barColor: "#1769aa"
+      },
+      green: {
+        nameColor: "#0b3d2e",
+        textColor: "#263832",
+        labelColor: "#16805d",
+        barColor: "#16805d"
+      }
+    };
+    let uploadedLogos = loadUploadedLogos();
+    let logoSource = localStorage.getItem(selectedLogoStorageKey) || logoLibrary[0].src;
+    const preview = document.getElementById("preview");
+    const output = document.getElementById("html-output");
+    const status = document.getElementById("status");
+    const logoLibraryElement = document.getElementById("logo-library");
+
+    function loadUploadedLogos() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(savedLogoStorageKey) || "[]");
+        return Array.isArray(saved) ? saved : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveUploadedLogos() {
+      localStorage.setItem(savedLogoStorageKey, JSON.stringify(uploadedLogos));
+    }
+
+    function allLogos() {
+      return logoLibrary.concat(uploadedLogos);
+    }
+
+    function selectLogo(src, message) {
+      logoSource = src;
+      localStorage.setItem(selectedLogoStorageKey, src);
+      if (message) status.textContent = message;
+      renderLogoLibrary();
+      render();
+    }
+
+    function renderLogoLibrary() {
+      logoLibraryElement.innerHTML = "";
+      allLogos().forEach((logo) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "logo-option" + (logo.src === logoSource ? " active" : "");
+        button.innerHTML =
+          '<span class="logo-thumb"><img src="' + logo.src + '" alt=""></span>' +
+          '<span class="logo-name">' + escapeHtml(logo.name) + '</span>';
+        button.addEventListener("click", () => selectLogo(logo.src, "Logo selecionado."));
+        logoLibraryElement.appendChild(button);
+      });
+    }
+
+    function value(id) {
+      return document.getElementById(id).value.trim();
+    }
+
+    function escapeHtml(text) {
+      return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function phoneHref(phone) {
+      const digits = phone.replace(/\D/g, "");
+      if (!digits) return "#";
+      if (digits.startsWith("55")) return "+" + digits;
+      return "+55" + digits;
+    }
+
+    function color(id, fallback) {
+      const current = value(id);
+      return /^#[0-9a-fA-F]{6}$/.test(current) ? current : fallback;
+    }
+
+    function currentLayout() {
+      return layouts[value("layout")] || layouts.classic;
+    }
+
+    function signatureHtml() {
+      const layout = currentLayout();
+      const name = escapeHtml(value("name") || "Nome do Colaborador");
+      const role = escapeHtml(value("role") || "Cargo | Setor");
+      const phone = escapeHtml(fixedPhone);
+      const extension = escapeHtml(value("extension"));
+      const email = escapeHtml(value("email") || "nome@santacasaandradina.com.br");
+      const teams = escapeHtml(value("teams") || email);
+      const logo = escapeHtml(logoSource);
+      const nameColor = color("name-color", "#09275c");
+      const textColor = color("text-color", "#2f3b4a");
+      const labelColor = color("label-color", "#b98a24");
+      const barColor = color("bar-color", "#b98a24");
+      const ramal = extension ? '<span style="color:#7a828c;"> | Ramal: ' + extension + '</span>' : "";
+
+      return '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:' + layout.width + 'px; max-width:' + layout.width + 'px; font-family:Arial, Helvetica, sans-serif; color:' + nameColor + '; border-collapse:collapse;">' +
+        '<tr>' +
+          '<td style="padding:0 0 14px 0; border-bottom:2px solid ' + barColor + ';">' +
+            '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%; border-collapse:collapse;">' +
+              '<tr>' +
+                '<td valign="middle" style="width:' + layout.logoCell + 'px; padding:0 ' + layout.gap + 'px 0 0;">' +
+                  '<img src="' + logo + '" width="' + layout.logoWidth + '" alt="Irmandade Santa Casa de Andradina" style="display:block; width:' + layout.logoWidth + 'px; height:auto; border:0; outline:none; text-decoration:none;">' +
+                '</td>' +
+                '<td valign="middle" style="width:1px; background:' + barColor + '; font-size:0; line-height:0;">&nbsp;</td>' +
+                '<td valign="middle" style="padding:0 0 0 ' + layout.gap + 'px;">' +
+                  '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%; border-collapse:collapse;">' +
+                    '<tr><td style="font-size:' + layout.nameSize + 'px; line-height:' + (layout.nameSize + 4) + 'px; font-weight:bold; color:' + nameColor + '; padding:0 0 3px 0;">' + name + '</td></tr>' +
+                    '<tr><td style="font-size:' + layout.roleSize + 'px; line-height:' + (layout.roleSize + 5) + 'px; color:#5b6470; padding:0 0 11px 0;">' + role + '</td></tr>' +
+                    '<tr><td style="font-size:' + layout.textSize + 'px; line-height:' + (layout.textSize + 7) + 'px; color:' + textColor + ';"><span style="display:inline-block; width:' + layout.labelWidth + 'px; color:' + labelColor + '; font-weight:bold;">Telefone:</span>&nbsp;<a href="tel:' + phoneHref(phone) + '" style="color:' + textColor + '; text-decoration:none;">' + phone + '</a>' + ramal + '</td></tr>' +
+                    '<tr><td style="font-size:' + layout.textSize + 'px; line-height:' + (layout.textSize + 7) + 'px; color:' + textColor + ';"><span style="display:inline-block; width:' + layout.labelWidth + 'px; color:' + labelColor + '; font-weight:bold;">Email:</span>&nbsp;<a href="mailto:' + email + '" style="color:' + textColor + '; text-decoration:none;">' + email + '</a></td></tr>' +
+                    '<tr><td style="font-size:' + layout.textSize + 'px; line-height:' + (layout.textSize + 7) + 'px; color:' + textColor + ';"><span style="display:inline-block; width:' + layout.labelWidth + 'px; color:' + labelColor + '; font-weight:bold;">Teams:</span>&nbsp;' + teams + '</td></tr>' +
+                    '<tr><td style="font-size:' + layout.textSize + 'px; line-height:' + (layout.textSize + 7) + 'px; color:' + textColor + ';"><span style="display:inline-block; width:' + layout.labelWidth + 'px; color:' + labelColor + '; font-weight:bold;">Site:</span>&nbsp;<a href="https://' + fixedSite + '" style="color:' + textColor + '; text-decoration:none;">' + fixedSite + '</a></td></tr>' +
+                    '<tr><td style="font-size:' + layout.textSize + 'px; line-height:' + (layout.textSize + 7) + 'px; color:' + textColor + '; white-space:nowrap;"><span style="display:inline-block; width:' + layout.labelWidth + 'px; color:' + labelColor + '; font-weight:bold;">Endere&ccedil;o:</span>&nbsp;' + fixedAddress + '</td></tr>' +
+                  '</table>' +
+                '</td>' +
+              '</tr>' +
+            '</table>' +
+          '</td>' +
+        '</tr>' +
+        '<tr><td style="padding:9px 0 0 0; font-size:' + layout.footerSize + 'px; line-height:' + (layout.footerSize + 4) + 'px; color:#7a828c;">Irmandade Santa Casa de Andradina | Desde 1940</td></tr>' +
+        '<tr><td style="padding:5px 0 0 0; font-size:10px; line-height:14px; color:#9aa1aa;">Esta mensagem pode conter informa&ccedil;&otilde;es confidenciais destinadas exclusivamente ao destinat&aacute;rio.</td></tr>' +
+      '</table>';
+    }
+
+    function loadImage(src) {
+      return new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.onerror = reject;
+        image.src = src;
+      });
+    }
+
+    function drawText(ctx, text, x, y, options) {
+      ctx.fillStyle = options.color;
+      ctx.font = options.font;
+      ctx.fillText(text, x, y);
+    }
+
+    function fitText(ctx, text, x, y, maxWidth, options) {
+      let size = options.size;
+      do {
+        ctx.font = (options.weight ? options.weight + " " : "") + size + "px Arial";
+        if (ctx.measureText(text).width <= maxWidth || size <= options.minSize) break;
+        size -= 1;
+      } while (size > 0);
+
+      ctx.fillStyle = options.color;
+      ctx.fillText(text, x, y);
+    }
+
+    async function imageBlob() {
+      const scale = 2;
+      const canvas = document.createElement("canvas");
+      const layout = {
+        width: 650,
+        logoCell: 200,
+        logoWidth: 170,
+        gap: 18,
+        labelWidth: 62,
+        nameSize: 17,
+        textSize: 12,
+        roleSize: 12,
+        footerSize: 10
+      };
+      const width = layout.width;
+      const height = 178;
+      canvas.width = width * scale;
+      canvas.height = height * scale;
+
+      const ctx = canvas.getContext("2d");
+      ctx.scale(scale, scale);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, width, height);
+
+      const nameColor = color("name-color", "#09275c");
+      const textColor = color("text-color", "#2f3b4a");
+      const labelColor = color("label-color", "#b98a24");
+      const barColor = color("bar-color", "#b98a24");
+      const image = await loadImage(logoSource);
+      const logoRatio = image.naturalHeight / image.naturalWidth;
+      const logoHeight = layout.logoWidth * logoRatio;
+      const top = 18;
+      const logoY = top + 38;
+      const textX = layout.logoCell + layout.gap + 1;
+      let y = top + 20;
+
+      ctx.drawImage(image, 0, logoY, layout.logoWidth, logoHeight);
+      ctx.fillStyle = barColor;
+      ctx.fillRect(layout.logoCell, top, 1, 120);
+
+      drawText(ctx, value("name") || "Nome do Colaborador", textX, y, {
+        color: nameColor,
+        font: "700 " + layout.nameSize + "px Arial"
+      });
+      y += layout.nameSize + 8;
+      drawText(ctx, value("role") || "Cargo | Setor", textX, y, {
+        color: "#5b6470",
+        font: layout.roleSize + "px Arial"
+      });
+      y += 22;
+
+      const rows = [
+        ["Telefone:", fixedPhone + (value("extension") ? " | Ramal: " + value("extension") : "")],
+        ["Email:", value("email") || "nome@santacasaandradina.com.br"],
+        ["Teams:", value("teams") || value("email") || "nome@santacasaandradina.com.br"],
+        ["Site:", fixedSite],
+        ["Endereco:", fixedAddress]
+      ];
+
+      rows.forEach(([label, content]) => {
+        const contentX = textX + layout.labelWidth + 8;
+        const maxWidth = width - contentX - 8;
+        drawText(ctx, label, textX, y, {
+          color: labelColor,
+          font: "700 " + layout.textSize + "px Arial"
+        });
+        fitText(ctx, content, contentX, y, maxWidth, {
+          color: textColor,
+          size: label === "Endereco:" ? 11 : layout.textSize,
+          minSize: 9
+        });
+        y += layout.textSize + 7;
+      });
+
+      ctx.fillStyle = barColor;
+      ctx.fillRect(0, y + 8, width, 2);
+      drawText(ctx, "Irmandade Santa Casa de Andradina | Desde 1940", 0, y + 24, {
+        color: "#7a828c",
+        font: layout.footerSize + "px Arial"
+      });
+      drawText(ctx, "Esta mensagem pode conter informacoes confidenciais destinadas exclusivamente ao destinatario.", 0, y + 40, {
+        color: "#9aa1aa",
+        font: "10px Arial"
+      });
+
+      return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+    }
+
+    async function copyImage() {
+      const blob = await imageBlob();
+      if (!window.ClipboardItem) {
+        status.textContent = "Este navegador nao permitiu copiar imagem. Use Baixar imagem PNG.";
+        return;
+      }
+      await navigator.clipboard.write([
+        new ClipboardItem({ "image/png": blob })
+      ]);
+      status.textContent = "Imagem copiada.";
+    }
+
+    async function downloadImage() {
+      const blob = await imageBlob();
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "assinatura-santa-casa.png";
+      link.click();
+      URL.revokeObjectURL(link.href);
+      status.textContent = "Imagem gerada.";
+    }
+
+    function render() {
+      const html = signatureHtml();
+      preview.innerHTML = html;
+      output.value = html;
+    }
+
+    async function copyText(text, message) {
+      await navigator.clipboard.writeText(text);
+      status.textContent = message;
+    }
+
+    async function copySignature() {
+      const html = signatureHtml();
+      if (window.ClipboardItem) {
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            "text/html": new Blob([html], { type: "text/html" }),
+            "text/plain": new Blob([preview.innerText], { type: "text/plain" })
+          })
+        ]);
+        status.textContent = "Assinatura copiada.";
+        return;
+      }
+      await copyText(html, "HTML copiado.");
+    }
+
+    fields.forEach((id) => document.getElementById(id).addEventListener("input", render));
+    document.querySelectorAll("[data-preset]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const preset = presets[button.dataset.preset];
+        document.getElementById("name-color").value = preset.nameColor;
+        document.getElementById("text-color").value = preset.textColor;
+        document.getElementById("label-color").value = preset.labelColor;
+        document.getElementById("bar-color").value = preset.barColor;
+        status.textContent = "Cores aplicadas.";
+        render();
+      });
+    });
+    document.getElementById("logo").addEventListener("change", (event) => {
+      const file = event.target.files[0];
+      if (!file) {
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.addEventListener("load", () => {
+        const uploadedLogo = {
+          name: file.name,
+          src: reader.result
+        };
+        uploadedLogos = uploadedLogos.filter((logo) => logo.name !== uploadedLogo.name);
+        uploadedLogos.unshift(uploadedLogo);
+        saveUploadedLogos();
+        selectLogo(uploadedLogo.src, "Logo adicionada e selecionada.");
+        event.target.value = "";
+      });
+      reader.readAsDataURL(file);
+    });
+    document.getElementById("copy-signature").addEventListener("click", copySignature);
+    document.getElementById("copy-html").addEventListener("click", () => copyText(output.value, "HTML copiado."));
+    document.getElementById("copy-image").addEventListener("click", copyImage);
+    document.getElementById("download-image").addEventListener("click", downloadImage);
+    renderLogoLibrary();
+    render();
+  </script>
+</body>
+</html>
