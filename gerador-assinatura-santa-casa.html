@@ -160,6 +160,56 @@
       border: 1px solid #d7dde6;
     }
 
+    .logo-library {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      max-height: 360px;
+      overflow: auto;
+      padding: 2px 2px 10px;
+    }
+
+    .logo-option {
+      display: grid;
+      gap: 6px;
+      min-height: 118px;
+      border: 1px solid #d5dce5;
+      border-radius: 6px;
+      background: #ffffff;
+      padding: 8px;
+      color: var(--ink);
+      text-align: left;
+    }
+
+    .logo-option.active {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(185, 138, 36, 0.16);
+    }
+
+    .logo-thumb {
+      display: grid;
+      place-items: center;
+      height: 72px;
+      background: #f8fafc;
+      border: 1px solid #edf1f5;
+      border-radius: 4px;
+    }
+
+    .logo-thumb img {
+      max-width: 100%;
+      max-height: 64px;
+      object-fit: contain;
+    }
+
+    .logo-name {
+      overflow: hidden;
+      color: #304057;
+      font-size: 11px;
+      line-height: 14px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     .actions {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -268,7 +318,12 @@
       </div>
 
       <div class="field">
-        <label for="logo">Logo</label>
+        <label>Logos salvos</label>
+        <div class="logo-library" id="logo-library"></div>
+      </div>
+
+      <div class="field">
+        <label for="logo">Adicionar nova logo</label>
         <input id="logo" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
       </div>
 
@@ -328,6 +383,23 @@
     const fixedSite = "www.santacasaandradina.com.br";
     const fixedAddress = "Av. Guanabara, 730 - Centro, Andradina - SP, 16901-901";
     const fields = ["name", "role", "extension", "email", "teams", "layout", "name-color", "text-color", "label-color", "bar-color"];
+    const savedLogoStorageKey = "santa-casa-uploaded-logos";
+    const selectedLogoStorageKey = "santa-casa-selected-logo";
+    const logoLibrary = [
+      { name: "Opcao 2 - Classica azul e dourado", src: "assets/logos/opcao-2-logo-santa-casa.png" },
+      { name: "Opcao 1 - Cinza horizontal", src: "assets/logos/opcao-1-logo-santa-casa.png" },
+      { name: "Opcao 3 - Bordo vertical", src: "assets/logos/opcao-3-logo-santa-casa.png" },
+      { name: "Opcao 4 - Azul e verde", src: "assets/logos/opcao-4-logo-santa-casa.png" },
+      { name: "Moderno teal", src: "assets/logos/01-logo-santa-casa-moderno-teal.png" },
+      { name: "Classico navy gold", src: "assets/logos/02-logo-santa-casa-classico-navy-gold.png" },
+      { name: "Bordo dourado", src: "assets/logos/03-logo-santa-casa-bordo-dourado.png" },
+      { name: "Emblema azul verde", src: "assets/logos/04-logo-santa-casa-emblema-azul-verde.png" },
+      { name: "Vertical verde", src: "assets/logos/05-logo-santa-casa-vertical-verde.png" },
+      { name: "Assinatura roxo turquesa", src: "assets/logos/06-logo-santa-casa-assinatura-roxo-turquesa.png" },
+      { name: "Institucional azul coral", src: "assets/logos/07-logo-santa-casa-institucional-azul-coral.png" },
+      { name: "Linha cinza verde", src: "assets/logos/08-logo-santa-casa-linha-cinza-verde.png" },
+      { name: "Logo enviado original", src: "assets/logos/logo-upload-original.jpg" }
+    ];
     const layouts = {
       classic: {
         width: 620,
@@ -378,10 +450,51 @@
         barColor: "#16805d"
       }
     };
-    let logoSource = "logo-santa-casa.png";
+    let uploadedLogos = loadUploadedLogos();
+    let logoSource = localStorage.getItem(selectedLogoStorageKey) || logoLibrary[0].src;
     const preview = document.getElementById("preview");
     const output = document.getElementById("html-output");
     const status = document.getElementById("status");
+    const logoLibraryElement = document.getElementById("logo-library");
+
+    function loadUploadedLogos() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(savedLogoStorageKey) || "[]");
+        return Array.isArray(saved) ? saved : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveUploadedLogos() {
+      localStorage.setItem(savedLogoStorageKey, JSON.stringify(uploadedLogos));
+    }
+
+    function allLogos() {
+      return logoLibrary.concat(uploadedLogos);
+    }
+
+    function selectLogo(src, message) {
+      logoSource = src;
+      localStorage.setItem(selectedLogoStorageKey, src);
+      if (message) status.textContent = message;
+      renderLogoLibrary();
+      render();
+    }
+
+    function renderLogoLibrary() {
+      logoLibraryElement.innerHTML = "";
+      allLogos().forEach((logo) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "logo-option" + (logo.src === logoSource ? " active" : "");
+        button.innerHTML =
+          '<span class="logo-thumb"><img src="' + logo.src + '" alt=""></span>' +
+          '<span class="logo-name">' + escapeHtml(logo.name) + '</span>';
+        button.addEventListener("click", () => selectLogo(logo.src, "Logo selecionado."));
+        logoLibraryElement.appendChild(button);
+      });
+    }
 
     function value(id) {
       return document.getElementById(id).value.trim();
@@ -633,16 +746,20 @@
     document.getElementById("logo").addEventListener("change", (event) => {
       const file = event.target.files[0];
       if (!file) {
-        logoSource = "logo-santa-casa.png";
-        render();
         return;
       }
 
       const reader = new FileReader();
       reader.addEventListener("load", () => {
-        logoSource = reader.result;
-        status.textContent = "Logo atualizado.";
-        render();
+        const uploadedLogo = {
+          name: file.name,
+          src: reader.result
+        };
+        uploadedLogos = uploadedLogos.filter((logo) => logo.name !== uploadedLogo.name);
+        uploadedLogos.unshift(uploadedLogo);
+        saveUploadedLogos();
+        selectLogo(uploadedLogo.src, "Logo adicionada e selecionada.");
+        event.target.value = "";
       });
       reader.readAsDataURL(file);
     });
@@ -650,6 +767,7 @@
     document.getElementById("copy-html").addEventListener("click", () => copyText(output.value, "HTML copiado."));
     document.getElementById("copy-image").addEventListener("click", copyImage);
     document.getElementById("download-image").addEventListener("click", downloadImage);
+    renderLogoLibrary();
     render();
   </script>
 </body>
