@@ -15,6 +15,11 @@
       --line: #dfe4ea;
       --surface: #f6f8fb;
       --white: #ffffff;
+      --field-bg: #ffffff;
+      --field-border: #cfd6df;
+      --soft-bg: #f4f7fa;
+      --button-soft: #efe5cc;
+      --button-soft-text: #6f4f12;
     }
 
     * {
@@ -27,6 +32,22 @@
       background: var(--surface);
       color: var(--ink);
       font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body.dark {
+      color-scheme: dark;
+      --blue: #a9c7ff;
+      --gold: #d9b867;
+      --ink: #e7edf6;
+      --muted: #aab7c8;
+      --line: #26364a;
+      --surface: #0f1724;
+      --white: #172233;
+      --field-bg: #111c2b;
+      --field-border: #34465d;
+      --soft-bg: #202d3e;
+      --button-soft: #2c3a4d;
+      --button-soft-text: #f2d38a;
     }
 
     .app {
@@ -86,8 +107,9 @@
     select {
       width: 100%;
       height: 42px;
-      border: 1px solid #cfd6df;
+      border: 1px solid var(--field-border);
       border-radius: 6px;
+      background: var(--field-bg);
       padding: 0 12px;
       color: var(--ink);
       font: 14px Arial, Helvetica, sans-serif;
@@ -95,7 +117,7 @@
     }
 
     select {
-      background: #ffffff;
+      background: var(--field-bg);
       cursor: pointer;
     }
 
@@ -110,7 +132,7 @@
       height: auto;
       min-height: 42px;
       padding: 9px 12px;
-      background: #ffffff;
+      background: var(--field-bg);
     }
 
     input:focus {
@@ -131,10 +153,10 @@
       justify-content: space-between;
       gap: 10px;
       min-width: 0;
-      border: 1px solid #cfd6df;
+      border: 1px solid var(--field-border);
       border-radius: 6px;
       padding: 8px 10px;
-      background: #ffffff;
+      background: var(--field-bg);
     }
 
     .color-field span {
@@ -161,11 +183,11 @@
       display: inline-flex;
       align-items: center;
       height: 42px;
-      border: 1px solid #cfd6df;
+      border: 1px solid var(--field-border);
       border-left: 0;
       border-radius: 0 6px 6px 0;
-      background: #f4f7fa;
-      color: #526070;
+      background: var(--soft-bg);
+      color: var(--muted);
       padding: 0 10px;
       font-size: 13px;
       white-space: nowrap;
@@ -186,9 +208,9 @@
     }
 
     .preset {
-      background: #f2f5f8;
+      background: var(--soft-bg);
       color: var(--blue);
-      border: 1px solid #d7dde6;
+      border: 1px solid var(--line);
     }
 
     .logo-library {
@@ -204,9 +226,9 @@
       display: grid;
       gap: 6px;
       min-height: 118px;
-      border: 1px solid #d5dce5;
+      border: 1px solid var(--line);
       border-radius: 6px;
-      background: #ffffff;
+      background: var(--field-bg);
       padding: 8px;
       color: var(--ink);
       text-align: left;
@@ -246,7 +268,7 @@
       display: grid;
       place-items: center;
       height: 72px;
-      background: #f8fafc;
+      background: #ffffff;
       border: 1px solid #edf1f5;
       border-radius: 4px;
     }
@@ -259,7 +281,7 @@
 
     .logo-name {
       overflow: hidden;
-      color: #304057;
+      color: var(--ink);
       font-size: 11px;
       font-weight: 700;
       line-height: 14px;
@@ -291,8 +313,16 @@
     }
 
     .secondary {
-      background: #efe5cc;
-      color: #6f4f12;
+      background: var(--button-soft);
+      color: var(--button-soft-text);
+    }
+
+    .theme-toggle {
+      width: 100%;
+      margin: 0 0 18px;
+      border: 1px solid var(--line);
+      background: var(--soft-bg);
+      color: var(--blue);
     }
 
     .wide {
@@ -329,11 +359,21 @@
       margin-top: 16px;
       border: 1px solid var(--line);
       border-radius: 8px;
+      background: var(--field-bg);
       padding: 12px;
       resize: vertical;
-      color: #26313f;
+      color: var(--ink);
       font: 12px Consolas, "Courier New", monospace;
       line-height: 17px;
+    }
+
+    .page-footer {
+      width: min(1180px, calc(100% - 40px));
+      margin: -12px auto 24px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 18px;
+      text-align: center;
     }
 
     @media (max-width: 900px) {
@@ -350,6 +390,7 @@
     <section class="panel form-panel">
       <h1>Gerador de Assinatura</h1>
       <p class="subtitle">Preencha os campos e copie a assinatura pronta para o usu&aacute;rio.</p>
+      <button class="theme-toggle" type="button" id="theme-toggle">Modo escuro</button>
 
       <div class="field">
         <label for="name">Nome completo</label>
@@ -464,6 +505,7 @@
       <textarea id="html-output" aria-label="HTML gerado"></textarea>
     </section>
   </main>
+  <footer class="page-footer">Copyright &copy; 2026 kiwors.</footer>
 
   <script>
     const fixedPhone = "(18) 3702-1100";
@@ -471,6 +513,7 @@
     const fixedAddress = "Av. Guanabara, 730 - Centro, Andradina - SP, 16901-901";
     const fixedEmailDomain = "@santacasaandradina.org";
     const publicAssetBaseUrl = "https://kiwor101.github.io/Gerador-de-assinatura/";
+    const themeStorageKey = "santa-casa-theme";
     const fields = ["name", "role", "department", "extension", "email", "teams", "layout", "name-color", "text-color", "label-color", "bar-color"];
     const savedLogoStorageKey = "santa-casa-uploaded-logos";
     const selectedLogoStorageKey = "santa-casa-selected-logo-v2";
@@ -557,6 +600,15 @@
     const output = document.getElementById("html-output");
     const status = document.getElementById("status");
     const logoLibraryElement = document.getElementById("logo-library");
+    const themeToggle = document.getElementById("theme-toggle");
+
+    function applyTheme(theme) {
+      const isDark = theme === "dark";
+      document.body.classList.toggle("dark", isDark);
+      themeToggle.textContent = isDark ? "Modo claro" : "Modo escuro";
+    }
+
+    applyTheme(localStorage.getItem(themeStorageKey) || "light");
 
     function loadUploadedLogos() {
       try {
@@ -873,6 +925,11 @@
     }
 
     fields.forEach((id) => document.getElementById(id).addEventListener("input", render));
+    themeToggle.addEventListener("click", () => {
+      const nextTheme = document.body.classList.contains("dark") ? "light" : "dark";
+      localStorage.setItem(themeStorageKey, nextTheme);
+      applyTheme(nextTheme);
+    });
     document.querySelectorAll("[data-preset]").forEach((button) => {
       button.addEventListener("click", () => {
         const preset = presets[button.dataset.preset];
