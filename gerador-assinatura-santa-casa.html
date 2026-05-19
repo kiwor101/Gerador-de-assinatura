@@ -386,11 +386,6 @@
       </div>
 
       <div class="field">
-        <label for="logo-name">Nome da nova logo</label>
-        <input id="logo-name">
-      </div>
-
-      <div class="field">
         <label for="logo">Adicionar nova logo</label>
         <input id="logo" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
       </div>
@@ -458,13 +453,13 @@
     const savedLogoStorageKey = "santa-casa-uploaded-logos";
     const selectedLogoStorageKey = "santa-casa-selected-logo-v2";
     const logoLibrary = [
-      { name: "Original", src: "assets/logos/logo-upload-original.jpg" },
-      { name: "Original 1", src: "assets/logos/original-1-logo-santa-casa.png" },
-      { name: "Original 2", src: "assets/logos/original-2-logo-santa-casa-branco.png" },
-      { name: "Original 3", src: "assets/logos/original-3-logo-santa-casa.png" },
-      { name: "Opcao 1 - Cinza horizontal", src: "assets/logos/opcao-1-logo-santa-casa.png" },
-      { name: "Opcao 3 - Bordo vertical", src: "assets/logos/opcao-3-logo-santa-casa.png" },
-      { name: "Opcao 4 - Azul e verde", src: "assets/logos/opcao-4-logo-santa-casa.png" }
+      { src: "assets/logos/logo-upload-original.jpg" },
+      { src: "assets/logos/original-1-logo-santa-casa.png" },
+      { src: "assets/logos/original-2-logo-santa-casa-assinatura.png" },
+      { src: "assets/logos/original-3-logo-santa-casa.png" },
+      { src: "assets/logos/opcao-1-logo-santa-casa.png" },
+      { src: "assets/logos/opcao-3-logo-santa-casa.png" },
+      { src: "assets/logos/opcao-4-logo-santa-casa.png" }
     ];
     const layouts = {
       classic: {
@@ -472,7 +467,8 @@
         logoCell: 210,
         logoWidth: 190,
         gap: 22,
-        labelWidth: 68,
+        iconWidth: 16,
+        labelWidth: 58,
         nameSize: 19,
         textSize: 13,
         roleSize: 13,
@@ -483,7 +479,8 @@
         logoCell: 175,
         logoWidth: 155,
         gap: 16,
-        labelWidth: 58,
+        iconWidth: 14,
+        labelWidth: 50,
         nameSize: 16,
         textSize: 11,
         roleSize: 11,
@@ -556,7 +553,10 @@
     }
 
     function allLogos() {
-      return logoLibrary.concat(uploadedLogos);
+      return logoLibrary.concat(uploadedLogos).map((logo, index) => ({
+        src: logo.src,
+        name: "Opcao " + (index + 1)
+      }));
     }
 
     function isUploadedLogo(src) {
@@ -648,6 +648,28 @@
       return prefix + fixedEmailDomain;
     }
 
+    function contactRows() {
+      return [
+        { icon: "☎", label: "Telefone:", value: fixedPhone + (value("extension") ? " | Ramal: " + value("extension") : ""), href: "tel:" + phoneHref(fixedPhone) },
+        { icon: "✉", label: "Email:", value: withFixedDomain(value("email")), href: "mailto:" + withFixedDomain(value("email")) },
+        { icon: "T", label: "Teams:", value: withFixedDomain(value("teams")) || withFixedDomain(value("email")) },
+        { icon: "⌂", label: "Site:", value: fixedSite, href: "https://" + fixedSite },
+        { icon: "⌖", label: "Endereco:", htmlLabel: "Endere&ccedil;o:", value: fixedAddress, nowrap: true }
+      ];
+    }
+
+    function contactRowHtml(row, layout, textColor, labelColor) {
+      const label = row.htmlLabel || row.label;
+      const content = row.href && row.value
+        ? '<a href="' + row.href + '" style="color:' + textColor + '; text-decoration:none;">' + escapeHtml(row.value) + '</a>'
+        : escapeHtml(row.value);
+      return '<tr><td style="font-size:' + layout.textSize + 'px; line-height:' + (layout.textSize + 7) + 'px; color:' + textColor + ';' + (row.nowrap ? ' white-space:nowrap;' : '') + '">' +
+        '<span style="display:inline-block; width:' + layout.iconWidth + 'px; color:' + labelColor + '; font-weight:bold; text-align:center;">' + row.icon + '</span>' +
+        '<span style="display:inline-block; width:' + layout.labelWidth + 'px; color:' + labelColor + '; font-weight:bold;">' + label + '</span>&nbsp;' +
+        content +
+      '</td></tr>';
+    }
+
     function signatureHtml() {
       const layout = currentLayout();
       const name = escapeHtml(value("name"));
@@ -661,7 +683,7 @@
       const textColor = color("text-color", "#2f3b4a");
       const labelColor = color("label-color", "#b98a24");
       const barColor = color("bar-color", "#b98a24");
-      const ramal = extension ? '<span style="color:#7a828c;"> | Ramal: ' + extension + '</span>' : "";
+      const rowsHtml = contactRows().map((row) => contactRowHtml(row, layout, textColor, labelColor)).join("");
 
       return '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:' + layout.width + 'px; max-width:' + layout.width + 'px; font-family:Arial, Helvetica, sans-serif; color:' + nameColor + '; border-collapse:collapse;">' +
         '<tr>' +
@@ -676,11 +698,7 @@
                   '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%; border-collapse:collapse;">' +
                     '<tr><td style="font-size:' + layout.nameSize + 'px; line-height:' + (layout.nameSize + 4) + 'px; font-weight:bold; color:' + nameColor + '; padding:0 0 3px 0;">' + name + '</td></tr>' +
                     '<tr><td style="font-size:' + layout.roleSize + 'px; line-height:' + (layout.roleSize + 5) + 'px; color:#5b6470; padding:0 0 11px 0;">' + role + '</td></tr>' +
-                    '<tr><td style="font-size:' + layout.textSize + 'px; line-height:' + (layout.textSize + 7) + 'px; color:' + textColor + ';"><span style="display:inline-block; width:' + layout.labelWidth + 'px; color:' + labelColor + '; font-weight:bold;">Telefone:</span>&nbsp;<a href="tel:' + phoneHref(phone) + '" style="color:' + textColor + '; text-decoration:none;">' + phone + '</a>' + ramal + '</td></tr>' +
-                    '<tr><td style="font-size:' + layout.textSize + 'px; line-height:' + (layout.textSize + 7) + 'px; color:' + textColor + ';"><span style="display:inline-block; width:' + layout.labelWidth + 'px; color:' + labelColor + '; font-weight:bold;">Email:</span>&nbsp;<a href="mailto:' + email + '" style="color:' + textColor + '; text-decoration:none;">' + email + '</a></td></tr>' +
-                    '<tr><td style="font-size:' + layout.textSize + 'px; line-height:' + (layout.textSize + 7) + 'px; color:' + textColor + ';"><span style="display:inline-block; width:' + layout.labelWidth + 'px; color:' + labelColor + '; font-weight:bold;">Teams:</span>&nbsp;' + teams + '</td></tr>' +
-                    '<tr><td style="font-size:' + layout.textSize + 'px; line-height:' + (layout.textSize + 7) + 'px; color:' + textColor + ';"><span style="display:inline-block; width:' + layout.labelWidth + 'px; color:' + labelColor + '; font-weight:bold;">Site:</span>&nbsp;<a href="https://' + fixedSite + '" style="color:' + textColor + '; text-decoration:none;">' + fixedSite + '</a></td></tr>' +
-                    '<tr><td style="font-size:' + layout.textSize + 'px; line-height:' + (layout.textSize + 7) + 'px; color:' + textColor + '; white-space:nowrap;"><span style="display:inline-block; width:' + layout.labelWidth + 'px; color:' + labelColor + '; font-weight:bold;">Endere&ccedil;o:</span>&nbsp;' + fixedAddress + '</td></tr>' +
+                    rowsHtml +
                   '</table>' +
                 '</td>' +
               '</tr>' +
@@ -719,22 +737,31 @@
       ctx.fillText(text, x, y);
     }
 
+    function drawContainedImage(ctx, image, x, y, maxWidth, maxHeight) {
+      const ratio = Math.min(maxWidth / image.naturalWidth, maxHeight / image.naturalHeight);
+      const width = image.naturalWidth * ratio;
+      const height = image.naturalHeight * ratio;
+      ctx.drawImage(image, x + ((maxWidth - width) / 2), y + ((maxHeight - height) / 2), width, height);
+    }
+
     async function imageBlob() {
       const scale = 2;
       const canvas = document.createElement("canvas");
       const layout = {
         width: 650,
-        logoCell: 200,
-        logoWidth: 170,
+        logoCell: 210,
+        logoWidth: 185,
+        logoHeight: 92,
         gap: 18,
-        labelWidth: 62,
+        iconWidth: 16,
+        labelWidth: 58,
         nameSize: 17,
         textSize: 12,
         roleSize: 12,
         footerSize: 10
       };
       const width = layout.width;
-      const height = 178;
+      const height = 208;
       canvas.width = width * scale;
       canvas.height = height * scale;
 
@@ -748,16 +775,12 @@
       const labelColor = color("label-color", "#b98a24");
       const barColor = color("bar-color", "#b98a24");
       const image = await loadImage(logoSource);
-      const logoRatio = image.naturalHeight / image.naturalWidth;
-      const logoHeight = layout.logoWidth * logoRatio;
       const top = 18;
       const logoY = top + 38;
       const textX = layout.logoCell + layout.gap + 1;
       let y = top + 20;
 
-      ctx.drawImage(image, 0, logoY, layout.logoWidth, logoHeight);
-      ctx.fillStyle = barColor;
-      ctx.fillRect(layout.logoCell, top, 1, 120);
+      drawContainedImage(ctx, image, 0, logoY, layout.logoWidth, layout.logoHeight);
 
       drawText(ctx, value("name"), textX, y, {
         color: nameColor,
@@ -770,36 +793,32 @@
       });
       y += 22;
 
-      const rows = [
-        ["Telefone:", fixedPhone + (value("extension") ? " | Ramal: " + value("extension") : "")],
-        ["Email:", withFixedDomain(value("email"))],
-        ["Teams:", withFixedDomain(value("teams")) || withFixedDomain(value("email"))],
-        ["Site:", fixedSite],
-        ["Endereco:", fixedAddress]
-      ];
-
-      rows.forEach(([label, content]) => {
-        const contentX = textX + layout.labelWidth + 8;
+      contactRows().forEach((row) => {
+        const contentX = textX + layout.iconWidth + layout.labelWidth + 8;
         const maxWidth = width - contentX - 8;
-        drawText(ctx, label, textX, y, {
+        drawText(ctx, row.icon, textX, y, {
           color: labelColor,
           font: "700 " + layout.textSize + "px Arial"
         });
-        fitText(ctx, content, contentX, y, maxWidth, {
+        drawText(ctx, row.label, textX + layout.iconWidth, y, {
+          color: labelColor,
+          font: "700 " + layout.textSize + "px Arial"
+        });
+        fitText(ctx, row.value, contentX, y, maxWidth, {
           color: textColor,
-          size: label === "Endereco:" ? 11 : layout.textSize,
+          size: row.label === "Endereco:" ? 11 : layout.textSize,
           minSize: 9
         });
         y += layout.textSize + 7;
       });
 
       ctx.fillStyle = barColor;
-      ctx.fillRect(0, y + 8, width, 2);
-      drawText(ctx, "Irmandade Santa Casa de Andradina | Desde 1940", 0, y + 24, {
+      ctx.fillRect(0, y + 10, width, 2);
+      drawText(ctx, "Irmandade Santa Casa de Andradina | Desde 1940", 0, y + 28, {
         color: "#7a828c",
         font: layout.footerSize + "px Arial"
       });
-      drawText(ctx, "Esta mensagem pode conter informacoes confidenciais destinadas exclusivamente ao destinatario.", 0, y + 40, {
+      drawText(ctx, "Esta mensagem pode conter informacoes confidenciais destinadas exclusivamente ao destinatario.", 0, y + 44, {
         color: "#9aa1aa",
         font: "10px Arial"
       });
@@ -875,16 +894,13 @@
 
       const reader = new FileReader();
       reader.addEventListener("load", () => {
-        const customName = value("logo-name");
         const uploadedLogo = {
-          name: customName || file.name,
           src: reader.result
         };
-        uploadedLogos = uploadedLogos.filter((logo) => logo.name !== uploadedLogo.name);
+        uploadedLogos = uploadedLogos.filter((logo) => logo.src !== uploadedLogo.src);
         uploadedLogos.unshift(uploadedLogo);
         saveUploadedLogos();
         selectLogo(uploadedLogo.src, "Logo adicionada e selecionada.");
-        document.getElementById("logo-name").value = "";
         event.target.value = "";
       });
       reader.readAsDataURL(file);
