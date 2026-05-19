@@ -465,10 +465,10 @@
     const layouts = {
       classic: {
         width: 620,
-        logoCell: 210,
-        logoWidth: 190,
-        gap: 22,
-        labelWidth: 74,
+        logoCell: 205,
+        logoWidth: 195,
+        gap: 14,
+        labelWidth: 72,
         nameSize: 19,
         textSize: 13,
         roleSize: 13,
@@ -476,10 +476,10 @@
       },
       web: {
         width: 560,
-        logoCell: 175,
-        logoWidth: 155,
-        gap: 16,
-        labelWidth: 66,
+        logoCell: 170,
+        logoWidth: 160,
+        gap: 12,
+        labelWidth: 64,
         nameSize: 16,
         textSize: 11,
         roleSize: 11,
@@ -648,8 +648,9 @@
     }
 
     function contactRows() {
+      const extension = value("extension");
       return [
-        { label: "Telefone:", value: fixedPhone + (value("extension") ? " | Ramal: " + value("extension") : ""), href: "tel:" + phoneHref(fixedPhone) },
+        { label: "Telefone:", value: fixedPhone, muted: extension ? " | Ramal: " + extension : "", href: "tel:" + phoneHref(fixedPhone) },
         { label: "Email:", value: withFixedDomain(value("email")), href: "mailto:" + withFixedDomain(value("email")) },
         { label: "Teams:", value: withFixedDomain(value("teams")) || withFixedDomain(value("email")) },
         { label: "Site:", value: fixedSite, href: "https://" + fixedSite },
@@ -662,9 +663,10 @@
       const content = row.href && row.value
         ? '<a href="' + row.href + '" style="color:' + textColor + '; text-decoration:none;">' + escapeHtml(row.value) + '</a>'
         : escapeHtml(row.value);
+      const muted = row.muted ? '<span style="color:#7a828c;">' + escapeHtml(row.muted) + '</span>' : "";
       return '<tr><td style="font-size:' + layout.textSize + 'px; line-height:' + (layout.textSize + 7) + 'px; color:' + textColor + ';' + (row.nowrap ? ' white-space:nowrap;' : '') + '">' +
         '<span style="display:inline-block; width:' + layout.labelWidth + 'px; color:' + labelColor + '; font-weight:bold;">' + label + '</span>&nbsp;' +
-        content +
+        content + muted +
       '</td></tr>';
     }
 
@@ -747,11 +749,11 @@
       const canvas = document.createElement("canvas");
       const layout = {
         width: 650,
-        logoCell: 210,
-        logoWidth: 185,
-        logoHeight: 92,
-        gap: 18,
-        labelWidth: 74,
+        logoCell: 205,
+        logoWidth: 195,
+        logoHeight: 96,
+        gap: 14,
+        labelWidth: 72,
         nameSize: 17,
         textSize: 12,
         roleSize: 12,
@@ -802,6 +804,14 @@
           size: row.label === "Endereco:" ? 11 : layout.textSize,
           minSize: 9
         });
+        if (row.muted) {
+          const mainWidth = ctx.measureText(row.value).width;
+          fitText(ctx, row.muted, contentX + mainWidth + 2, y, maxWidth - mainWidth - 2, {
+            color: "#7a828c",
+            size: layout.textSize,
+            minSize: 9
+          });
+        }
         y += layout.textSize + 7;
       });
 
