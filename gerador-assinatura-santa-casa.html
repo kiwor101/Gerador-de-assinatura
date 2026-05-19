@@ -449,6 +449,7 @@
     const fixedSite = "www.santacasaandradina.com.br";
     const fixedAddress = "Av. Guanabara, 730 - Centro, Andradina - SP, 16901-901";
     const fixedEmailDomain = "@santacasaandradina.org";
+    const publicAssetBaseUrl = "https://kiwor101.github.io/Gerador-de-assinatura/";
     const fields = ["name", "role", "department", "extension", "email", "teams", "layout", "name-color", "text-color", "label-color", "bar-color"];
     const savedLogoStorageKey = "santa-casa-uploaded-logos";
     const selectedLogoStorageKey = "santa-casa-selected-logo-v2";
@@ -627,6 +628,11 @@
       return /^#[0-9a-fA-F]{6}$/.test(current) ? current : fallback;
     }
 
+    function publicLogoSource(src) {
+      if (/^(data:|https?:|blob:)/i.test(src)) return src;
+      return publicAssetBaseUrl + src.replace(/^\/+/, "");
+    }
+
     function currentLayout() {
       return layouts[value("layout")] || layouts.classic;
     }
@@ -676,7 +682,7 @@
       const extension = escapeHtml(value("extension"));
       const email = escapeHtml(withFixedDomain(value("email")));
       const teams = escapeHtml(withFixedDomain(value("teams")) || withFixedDomain(value("email")));
-      const logo = escapeHtml(logoSource);
+      const logo = escapeHtml(publicLogoSource(logoSource));
       const nameColor = color("name-color", "#09275c");
       const textColor = color("text-color", "#2f3b4a");
       const labelColor = color("label-color", "#b98a24");
@@ -759,7 +765,7 @@
 
       const source = preview.firstElementChild.cloneNode(true);
       const logo = source.querySelector("img");
-      if (logo) logo.src = await imageDataUrl(logoSource);
+      if (logo) logo.src = await imageDataUrl(publicLogoSource(logoSource));
 
       const rect = preview.firstElementChild.getBoundingClientRect();
       const width = Math.ceil(rect.width);
