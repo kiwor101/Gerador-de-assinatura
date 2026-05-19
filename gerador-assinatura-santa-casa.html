@@ -742,89 +742,59 @@
       ctx.drawImage(image, x + ((maxWidth - width) / 2), y + ((maxHeight - height) / 2), width, height);
     }
 
+    async function imageDataUrl(src) {
+      if (src.startsWith("data:")) return src;
+      const response = await fetch(src);
+      const blob = await response.blob();
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    }
+
     async function imageBlob() {
+      render();
+
+      const source = preview.firstElementChild.cloneNode(true);
+      const logo = source.querySelector("img");
+      if (logo) logo.src = await imageDataUrl(logoSource);
+
+      const rect = preview.firstElementChild.getBoundingClientRect();
+      const width = Math.ceil(rect.width);
+      const height = Math.ceil(rect.height);
       const scale = 2;
-      const canvas = document.createElement("canvas");
-      const layout = {
-        width: 650,
-        logoCell: 200,
-        logoWidth: 195,
-        logoHeight: 96,
-        gap: 10,
-        nameSize: 17,
-        textSize: 12,
-        roleSize: 12,
-        footerSize: 10
-      };
-      const width = layout.width;
-      const height = 208;
-      canvas.width = width * scale;
-      canvas.height = height * scale;
+      const wrapper = document.createElement("div");
+      wrapper.setAttribute("xmlns", "http://www.w3.org/1999/xhtml");
+      wrapper.style.width = width + "px";
+      wrapper.style.minHeight = height + "px";
+      wrapper.style.background = "#ffffff";
+      wrapper.appendChild(source);
 
-      const ctx = canvas.getContext("2d");
-      ctx.scale(scale, scale);
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, width, height);
+      const serialized = new XMLSerializer().serializeToString(wrapper);
+      const svg =
+        '<svg xmlns="http://www.w3.org/2000/svg" width="' + width + '" height="' + height + '">' +
+          '<foreignObject width="100%" height="100%">' +
+            serialized +
+          '</foreignObject>' +
+        '</svg>';
+      const svgUrl = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }));
 
-      const nameColor = color("name-color", "#09275c");
-      const textColor = color("text-color", "#2f3b4a");
-      const labelColor = color("label-color", "#b98a24");
-      const barColor = color("bar-color", "#b98a24");
-      const image = await loadImage(logoSource);
-      const top = 18;
-      const logoY = top + 38;
-      const textX = layout.logoCell + layout.gap + 1;
-      let y = top + 20;
-
-      drawContainedImage(ctx, image, 0, logoY, layout.logoWidth, layout.logoHeight);
-
-      drawText(ctx, value("name"), textX, y, {
-        color: nameColor,
-        font: "700 " + layout.nameSize + "px Arial"
-      });
-      y += layout.nameSize + 8;
-      drawText(ctx, roleLine(), textX, y, {
-        color: "#5b6470",
-        font: layout.roleSize + "px Arial"
-      });
-      y += 22;
-
-      contactRows().forEach((row) => {
-        ctx.font = "700 " + layout.textSize + "px Arial";
-        const contentX = textX + ctx.measureText(row.label).width + 6;
-        const maxWidth = width - contentX - 8;
-        drawText(ctx, row.label, textX, y, {
-          color: labelColor,
-          font: "700 " + layout.textSize + "px Arial"
-        });
-        fitText(ctx, row.value, contentX, y, maxWidth, {
-          color: textColor,
-          size: row.label === "Endereco:" ? 11 : layout.textSize,
-          minSize: 9
-        });
-        if (row.muted) {
-          const mainWidth = ctx.measureText(row.value).width;
-          fitText(ctx, row.muted, contentX + mainWidth + 2, y, maxWidth - mainWidth - 2, {
-            color: "#7a828c",
-            size: layout.textSize,
-            minSize: 9
-          });
-        }
-        y += layout.textSize + 7;
-      });
-
-      ctx.fillStyle = barColor;
-      ctx.fillRect(0, y + 10, width, 2);
-      drawText(ctx, "Irmandade Santa Casa de Andradina | Desde 1940", 0, y + 28, {
-        color: "#7a828c",
-        font: layout.footerSize + "px Arial"
-      });
-      drawText(ctx, "Esta mensagem pode conter informacoes confidenciais destinadas exclusivamente ao destinatario.", 0, y + 44, {
-        color: "#9aa1aa",
-        font: "10px Arial"
-      });
-
-      return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+      try {
+        const image = await loadImage(svgUrl);
+        const canvas = document.createElement("canvas");
+        canvas.width = width * scale;
+        canvas.height = height * scale;
+        const ctx = canvas.getContext("2d");
+        ctx.scale(scale, scale);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(image, 0, 0, width, height);
+        return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+      } finally {
+        URL.revokeObjectURL(svgUrl);
+      }
     }
 
     async function copyImage() {
