@@ -468,8 +468,7 @@
         logoCell: 210,
         logoWidth: 190,
         gap: 22,
-        iconWidth: 16,
-        labelWidth: 58,
+        labelWidth: 74,
         nameSize: 19,
         textSize: 13,
         roleSize: 13,
@@ -480,8 +479,7 @@
         logoCell: 175,
         logoWidth: 155,
         gap: 16,
-        iconWidth: 14,
-        labelWidth: 50,
+        labelWidth: 66,
         nameSize: 16,
         textSize: 11,
         roleSize: 11,
@@ -651,11 +649,11 @@
 
     function contactRows() {
       return [
-        { icon: "☎", label: "Telefone:", value: fixedPhone + (value("extension") ? " | Ramal: " + value("extension") : ""), href: "tel:" + phoneHref(fixedPhone) },
-        { icon: "✉", label: "Email:", value: withFixedDomain(value("email")), href: "mailto:" + withFixedDomain(value("email")) },
-        { icon: "T", label: "Teams:", value: withFixedDomain(value("teams")) || withFixedDomain(value("email")) },
-        { icon: "⌂", label: "Site:", value: fixedSite, href: "https://" + fixedSite },
-        { icon: "⌖", label: "Endereco:", htmlLabel: "Endere&ccedil;o:", value: fixedAddress, nowrap: true }
+        { label: "Telefone:", value: fixedPhone + (value("extension") ? " | Ramal: " + value("extension") : ""), href: "tel:" + phoneHref(fixedPhone) },
+        { label: "Email:", value: withFixedDomain(value("email")), href: "mailto:" + withFixedDomain(value("email")) },
+        { label: "Teams:", value: withFixedDomain(value("teams")) || withFixedDomain(value("email")) },
+        { label: "Site:", value: fixedSite, href: "https://" + fixedSite },
+        { label: "Endereco:", htmlLabel: "Endere&ccedil;o:", value: fixedAddress, nowrap: true }
       ];
     }
 
@@ -665,7 +663,6 @@
         ? '<a href="' + row.href + '" style="color:' + textColor + '; text-decoration:none;">' + escapeHtml(row.value) + '</a>'
         : escapeHtml(row.value);
       return '<tr><td style="font-size:' + layout.textSize + 'px; line-height:' + (layout.textSize + 7) + 'px; color:' + textColor + ';' + (row.nowrap ? ' white-space:nowrap;' : '') + '">' +
-        '<span style="display:inline-block; width:' + layout.iconWidth + 'px; color:' + labelColor + '; font-weight:bold; text-align:center;">' + row.icon + '</span>' +
         '<span style="display:inline-block; width:' + layout.labelWidth + 'px; color:' + labelColor + '; font-weight:bold;">' + label + '</span>&nbsp;' +
         content +
       '</td></tr>';
@@ -754,8 +751,7 @@
         logoWidth: 185,
         logoHeight: 92,
         gap: 18,
-        iconWidth: 16,
-        labelWidth: 58,
+        labelWidth: 74,
         nameSize: 17,
         textSize: 12,
         roleSize: 12,
@@ -795,13 +791,9 @@
       y += 22;
 
       contactRows().forEach((row) => {
-        const contentX = textX + layout.iconWidth + layout.labelWidth + 8;
+        const contentX = textX + layout.labelWidth + 8;
         const maxWidth = width - contentX - 8;
-        drawText(ctx, row.icon, textX, y, {
-          color: labelColor,
-          font: "700 " + layout.textSize + "px Arial"
-        });
-        drawText(ctx, row.label, textX + layout.iconWidth, y, {
+        drawText(ctx, row.label, textX, y, {
           color: labelColor,
           font: "700 " + layout.textSize + "px Arial"
         });
