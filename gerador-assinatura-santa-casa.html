@@ -468,7 +468,6 @@
         logoCell: 200,
         logoWidth: 195,
         gap: 10,
-        labelWidth: 56,
         nameSize: 19,
         textSize: 13,
         roleSize: 13,
@@ -479,7 +478,6 @@
         logoCell: 166,
         logoWidth: 160,
         gap: 9,
-        labelWidth: 52,
         nameSize: 16,
         textSize: 11,
         roleSize: 11,
@@ -665,7 +663,7 @@
         : escapeHtml(row.value);
       const muted = row.muted ? '<span style="color:#7a828c;">' + escapeHtml(row.muted) + '</span>' : "";
       return '<tr><td style="font-size:' + layout.textSize + 'px; line-height:' + (layout.textSize + 7) + 'px; color:' + textColor + ';' + (row.nowrap ? ' white-space:nowrap;' : '') + '">' +
-        '<span style="display:inline-block; width:' + layout.labelWidth + 'px; color:' + labelColor + '; font-weight:bold;">' + label + '</span>&nbsp;' +
+        '<span style="color:' + labelColor + '; font-weight:bold;">' + label + '</span>&nbsp;' +
         content + muted +
       '</td></tr>';
     }
@@ -753,7 +751,6 @@
         logoWidth: 195,
         logoHeight: 96,
         gap: 10,
-        labelWidth: 56,
         nameSize: 17,
         textSize: 12,
         roleSize: 12,
@@ -793,7 +790,8 @@
       y += 22;
 
       contactRows().forEach((row) => {
-        const contentX = textX + layout.labelWidth + 8;
+        ctx.font = "700 " + layout.textSize + "px Arial";
+        const contentX = textX + ctx.measureText(row.label).width + 6;
         const maxWidth = width - contentX - 8;
         drawText(ctx, row.label, textX, y, {
           color: labelColor,
