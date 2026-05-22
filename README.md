@@ -33,7 +33,7 @@ index.html
 - Copia da assinatura pronta para colar no Outlook.
 - Geracao e download da assinatura como PNG.
 - Modo claro e modo escuro na interface do gerador.
-- Pagina auxiliar de scripts e contas de e-mail.
+- Pagina auxiliar de script e conferencia de migracao de e-mails.
 
 ## Como Usar
 
@@ -97,11 +97,11 @@ O modo escuro muda apenas a interface do gerador.
 
 A assinatura, a pre-visualizacao e a PNG gerada continuam com fundo branco para evitar problemas de leitura e compatibilidade no e-mail.
 
-## Scripts e Contas
+## Scripts e Conferencia
 
-A pagina `scripts-senhas.html` contem um texto padrao para comunicar mudanca de e-mail e uma tabela auxiliar de contas.
+A pagina `scripts-senhas.html` contem um texto padrao para comunicar mudanca de e-mail e uma lista de conferencia da migracao por setor.
 
-Por seguranca, senhas reais nao devem ser publicadas no GitHub Pages. Use um cofre de senhas ou controle interno autorizado para armazenar credenciais.
+A marcacao da conferencia fica salva no navegador por meio de `localStorage`. Em GitHub Pages puro, essa marcacao nao e compartilhada entre computadores ou usuarios diferentes.
 
 ## Estrutura
 

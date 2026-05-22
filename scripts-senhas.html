@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Scripts e Senhas - Santa Casa</title>
+  <title>Scripts e Conferencia - Santa Casa</title>
   <style>
     :root {
       color-scheme: light;
@@ -179,6 +179,48 @@
       font-size: 12px;
     }
 
+    .check-cell {
+      width: 92px;
+      text-align: center;
+    }
+
+    .done-check {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: minmax(240px, 1fr) auto;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .toolbar input {
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--field);
+      color: var(--ink);
+      padding: 0 12px;
+      font: 14px Arial, Helvetica, sans-serif;
+    }
+
+    .summary {
+      display: inline-flex;
+      align-items: center;
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--soft);
+      color: var(--blue);
+      padding: 0 12px;
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
     .status {
       min-height: 18px;
       color: #23613b;
@@ -209,7 +251,7 @@
 <body>
   <main class="page">
     <header class="header">
-      <h1>Scripts e Senhas</h1>
+      <h1>Scripts e Conferencia</h1>
       <div class="actions">
         <a href="index.html">Voltar ao gerador</a>
         <button type="button" id="theme-toggle">Modo escuro</button>
@@ -234,21 +276,24 @@ Atenciosamente,</textarea>
     </section>
 
     <section class="panel">
-      <h2>Contas de E-mail</h2>
-      <p class="note">Por seguranca, senhas reais nao devem ficar publicadas no GitHub Pages. Consulte o cofre de senhas ou o controle interno autorizado.</p>
+      <h2>Conferencia de Migracao</h2>
+      <p class="note">Marque os setores ja conferidos. A marcacao fica salva neste navegador para nao perder o controle.</p>
+      <div class="toolbar">
+        <input id="migration-search" type="search" placeholder="Pesquisar por e-mail ou dono">
+        <div class="summary" id="migration-summary">0 de 0 concluidos</div>
+      </div>
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
-              <th>Nome</th>
-              <th>E-mail</th>
-              <th>Link</th>
-              <th>Usuario</th>
-              <th>Senha</th>
+              <th class="check-cell">Feito</th>
+              <th>E-mail principal</th>
+              <th>E-mail novo</th>
+              <th>Dono</th>
               <th>Acao</th>
             </tr>
           </thead>
-          <tbody id="accounts"></tbody>
+          <tbody id="migration-list"></tbody>
         </table>
       </div>
     </section>
@@ -260,17 +305,85 @@ Atenciosamente,</textarea>
     const themeStorageKey = "santa-casa-theme";
     const themeToggle = document.getElementById("theme-toggle");
     const status = document.getElementById("status");
-    const accounts = [
-      ["Agencia Transfusional", "agenciatransfusional@santacasaandradina.org"],
-      ["Manutencao", "manutencao@santacasaandradina.org", "", "", "Ver com o Marcelo"],
-      ["Nir", "nir@santacasaandradina.org"],
-      ["Psicologia", "psicologia@santacasaandradina.org"],
-      ["Recepcao hemodialise", "recepcao.hemodialise@santacasaandradina.org"],
-      ["Recepcao Internacao", "recepcao.internacao@santacasaandradina.org"],
-      ["Recepcao Policlinica", "recepcao.policlinica@santacasaandradina.org"],
-      ["Recepcao Raiox", "recepcao.raiox@santacasaandradina.org"],
-      ["RT Farmacia", "rtfarmacia@santacasaandradina.org"],
-      ["Servico social", "servico.social@santacasaandradina.org"]
+    const migrationStorageKey = "santa-casa-migracao-conferencia-v1";
+    const migrationRows = [
+      { emailPrincipal: "advogada@santacasaandradina.com.br", emailNovo: "advogada@santacasaandradina.org", dono: "Jessica Siqueira" },
+      { emailPrincipal: "agenciatransfusional@santacasaandradina.com.br", emailNovo: "agenciatransfusional@santacasaandradina.org", dono: "Banco de sangue" },
+      { emailPrincipal: "agendamento@santacasaandradina.com.br", emailNovo: "agendamento@santacasaandradina.org", dono: "Andreia Da Silva Lima" },
+      { emailPrincipal: "almoxarifado@santacasaandradina.com.br", emailNovo: "almoxarifado@santacasaandradina.org", dono: "Viviane" },
+      { emailPrincipal: "almoxarifadohemodialise@santacasaandradina.com.br", emailNovo: "almoxarifadohemodialise@santacasaandradina.org", dono: "BACKUP" },
+      { emailPrincipal: "altaresponsavel@santacasaandradina.com.br", emailNovo: "altaresponsavel@santacasaandradina.org", dono: "Layssa" },
+      { emailPrincipal: "assistente.diretoriaclinica@santacasaandradina.com.br", emailNovo: "assistente.diretoriaclinica@santacasaandradina.org", dono: "Eliane" },
+      { emailPrincipal: "assistente.juridico@santacasaandradina.com.br", emailNovo: "assistente.juridico@santacasaandradina.org", dono: "Flavia" },
+      { emailPrincipal: "auditoria@santacasaandradina.com.br", emailNovo: "auditoria@santacasaandradina.org", dono: "lilian" },
+      { emailPrincipal: "bkpcontabilidade@santacasadeandradina.com.br", emailNovo: "bkpcontabilidade@santacasaandradina.org", dono: "bkp contabil" },
+      { emailPrincipal: "bkpcontas.medicas@santacasadeandradina.com.br", emailNovo: "bkpcontas.medicas@santacasaandradina.org", dono: "bkp financeiro" },
+      { emailPrincipal: "bkpfinanceiro@santacasadeandradina.com.br", emailNovo: "bkpfinanceiro@santacasaandradina.org", dono: "bkp financeiro" },
+      { emailPrincipal: "bkpindio@santacasadeandradina.com.br", emailNovo: "bkpindio@santacasaandradina.org", dono: "bkp indio" },
+      { emailPrincipal: "caixa@santacasaandradina.com.br", emailNovo: "caixa@santacasaandradina.org", dono: "Sandra e Tomazia" },
+      { emailPrincipal: "ccih@santacasaandradina.com.br", emailNovo: "ccih@santacasaandradina.org", dono: "Natalia Assuit" },
+      { emailPrincipal: "cihumanizacao@santacasaandradina.com.br", emailNovo: "cihumanizacao@santacasaandradina.org", dono: "Layssa" },
+      { emailPrincipal: "clinicamedica@santacasaandradina.com.br", emailNovo: "rtenfermagem.clinico@santacasaandradina.org", dono: "Enfermeira RT clinico" },
+      { emailPrincipal: "comunicacao@santacasaandradina.com.br", emailNovo: "comunicacao@santacasaandradina.org", dono: "Vanderlei Beliato" },
+      { emailPrincipal: "contabilidade@santacasaandradina.com.br ; contabilidade2@santacasaandradina.com.br", emailNovo: "contabilidade@santacasaandradina.org", dono: "contabilidade" },
+      { emailPrincipal: "contas.medicas@santacasaandradina.com.br", emailNovo: "contas.medicas@santacasaandradina.org", dono: "financeiro" },
+      { emailPrincipal: "contasapagar@santacasaandradina.com.br", emailNovo: "contasapagar@santacasaandradina.org", dono: "financeiro" },
+      { emailPrincipal: "contato@santacasaandradina.com.br", emailNovo: "contato@santacasaandradina.org", dono: "?" },
+      { emailPrincipal: "conveniosaudeindigena@santacasaandradina.com.br", emailNovo: "conveniosaudeindigena@santacasaandradina.org", dono: "BACKUP" },
+      { emailPrincipal: "coordenacao.apartamento@santacasaandradina.com.br", emailNovo: "rtenfermagem.apartamentos@santacasaandradina.org", dono: "Enfermeira RT apartamentos" },
+      { emailPrincipal: "coordenacao.pa@santacasaandradina.com.br", emailNovo: "coordenacao.pa@santacasaandradina.org", dono: "Nayara" },
+      { emailPrincipal: "coordenacao.saudeindigena@santacasaandradina.com.br", emailNovo: "coordenacao.saudeindigena@santacasaandradina.org", dono: "BACKUP" },
+      { emailPrincipal: "daiane.compras@santacasaandradina.com.br", emailNovo: "compras@santacasaandradina.org", dono: "Daiane" },
+      { emailPrincipal: "departamento.juridico@santacasaandradina.com.br", emailNovo: "departamento.juridico@santacasaandradina.org", dono: "BACKUP" },
+      { emailPrincipal: "doacao@santacasaandradina.com.br", emailNovo: "doacao@santacasaandradina.org", dono: "email do pix" },
+      { emailPrincipal: "ed.continuada@santacasaandradina.com.br", emailNovo: "edcontinuada@santacasaandradina.org", dono: "Gabriela" },
+      { emailPrincipal: "enfermeirarthemodinamica@santacasaandradina.com.br", emailNovo: "rtenfermagem.hemocori@santacasaandradina.org", dono: "Enfermeira RT hemocori" },
+      { emailPrincipal: "fabionunes.juridico@santacasaandradina.com.br,fabionunes.juridico@santacasaandradina.com.br", emailNovo: "gestor.juridico@santacasaandradina.org/backupjuridico@santacasaandradina.org", dono: "Hygor" },
+      { emailPrincipal: "faturamento@santacasaandradina.com.br", emailNovo: "faturamento@santacasaandradina.org", dono: "faturamento" },
+      { emailPrincipal: "financeiro.filiais@santacasaandradina.com.br", emailNovo: "financeiro.filiais@santacasaandradina.org", dono: "BACKUP" },
+      { emailPrincipal: "financeiro@santacasaandradina.com.br", emailNovo: "financeiro@santacasaandradina.org", dono: "financeiro" },
+      { emailPrincipal: "financeirobkp@santacasadeandradina.com.br", emailNovo: "financeirobkp@santacasaandradina.org", dono: "bkp financeiro" },
+      { emailPrincipal: "financeiroconsulta@santacasaandradina.com.br", emailNovo: "financeiroconsulta@santacasaandradina.org", dono: "BACKUP" },
+      { emailPrincipal: "fisioterapia@santacasaandradina.com.br", emailNovo: "fisioterapia@santacasaandradina.org", dono: "Natieli" },
+      { emailPrincipal: "gerencia.administrativa@santacasaandradina.com.br", emailNovo: "gerencia.administrativa@santacasaandradina.org", dono: "Maria Fernanda" },
+      { emailPrincipal: "gerencia.atendimento@santacasaandradina.com.br ; coordenacao.atend@santacasaandradina.com.br", emailNovo: "coordenacao.atendimento@santacasaandradina.org", dono: "Franciely" },
+      { emailPrincipal: "gerencia.enfermagem@santacasaandradina.com.br", emailNovo: "gerencia.enfermagem@santacasaandradina.org", dono: "Thaiane" },
+      { emailPrincipal: "gerencia.faturamento@santacasaandradina.com.br", emailNovo: "gerencia.faturamento@santacasaandradina.org", dono: "Ana Paula" },
+      { emailPrincipal: "gerencia.financeiro@santacasaandradina.com.br", emailNovo: "gerencia.financeiro@santacasaandradina.org", dono: "Patricia" },
+      { emailPrincipal: "gerencia.rh@santacasaandradina.com.br", emailNovo: "gerencia.rh@santacasaandradina.org", dono: "Guilherme Obice" },
+      { emailPrincipal: "gerencia.tecnica@santacasaandradina.com.br", emailNovo: "gerencia.operacoes@santacasaandradina.org", dono: "Gislaine" },
+      { emailPrincipal: "gerencia.ti@santacasaandradina.com.br", emailNovo: "gerencia.ti@santacasaandradina.org", dono: "Pedro" },
+      { emailPrincipal: "hemocori@santacasaandradina.com.br", emailNovo: "hemocori@santacasaandradina.org", dono: "Nayara/Beatriz" },
+      { emailPrincipal: "hemodialise@santacasaandradina.com.br", emailNovo: "coordenacao.hemodialise@santacasaandradina.org", dono: "Agatha" },
+      { emailPrincipal: "higiene@santacasaandradina.com.br", emailNovo: "higiene@santacasaandradina.org", dono: "Herbet/Maristela" },
+      { emailPrincipal: "indigenalitoralsul@santacasaandradina.com.br", emailNovo: "indigenalitoralsul@santacasaandradina.org", dono: "BACKUP" },
+      { emailPrincipal: "internacao@santacasaandradina.com.br; coordenacao.atend@santacasaandradina.com.br", emailNovo: "recepcao.internacao@santacasaandradina.org", dono: "recep internacao" },
+      { emailPrincipal: "intervencao.medicos@santacasaandradina.com.br", emailNovo: "interventor.medicos@santacasaandradina.org", dono: "BACKUP" },
+      { emailPrincipal: "interventor@santacasaandradina.com.br diretoria@santacasaandradina.com.br", emailNovo: "interventor@santacasaandradina.org", dono: "Luiz Fernando" },
+      { emailPrincipal: "manutencao@santacasaandradina.com.br", emailNovo: "manutencao@santacasaandradina.org", dono: "vanderlei/marcelo" },
+      { emailPrincipal: "marcos@santacasaandradina.com.br", emailNovo: "sesmt@santacasaandradina.org", dono: "Marcos" },
+      { emailPrincipal: "maternidade.enfermagem@santacasaandradina.com.br", emailNovo: "rtenfermagem.maternidade@santacasaandradina.org", dono: "Enfermeira RT maternidade" },
+      { emailPrincipal: "nucleo.regulacao@santacasaandradina.com.br", emailNovo: "nir@santacasaandradina.org", dono: "NIR" },
+      { emailPrincipal: "nutricao@santacasaandradina.com.br", emailNovo: "nutricao@santacasaandradina.org", dono: "Natalia Abreu" },
+      { emailPrincipal: "ouvidoria@santacasaandradina.com.br", emailNovo: "ouvidoria@santacasaandradina.org", dono: "Rita" },
+      { emailPrincipal: "patrimonio@santacasaandradina.com.br", emailNovo: "patrimonio@santacasaandradina.org", dono: "Guilherme Ortuzal" },
+      { emailPrincipal: "psicologia@santacasaandradina.com.br", emailNovo: "psicologia@santacasaandradina.org", dono: "Felipe/Angelica" },
+      { emailPrincipal: "raiox@santacasaandradina.com.br", emailNovo: "raiox@santacasaandradina.org", dono: "Paula" },
+      { emailPrincipal: "recepcao.adm@santacasaandradina.com.br", emailNovo: "secretaria.administrativa@santacasaandradina.org", dono: "Greice" },
+      { emailPrincipal: "recepcao.hemodialise@santacasaandradina.com.br", emailNovo: "recepcao.hemodialise@santacasaandradina.org", dono: "recep dialise" },
+      { emailPrincipal: "recepcao.pa@santacasaandradina.com.br", emailNovo: "recepcao.policlinica@santacasaandradina.org", dono: "recep poli" },
+      { emailPrincipal: "recepcaorx@santacasaandradina.com.br", emailNovo: "recepcao.raiox@santacasaandradina.org", dono: "recep raiox" },
+      { emailPrincipal: "sesmt@santacasaandradina.com.br", emailNovo: "sesmt.enfermagem@santacasaandradina.org", dono: "Maria" },
+      { emailPrincipal: "siconv.convenios@santacasaandradina.com.br", emailNovo: "siconv.convenios@santacasaandradina.org", dono: "BACKUP" },
+      { emailPrincipal: "supervisao.lavanderia@santacasaandradina.com.br", emailNovo: "coordenacao.lavanderia@santacasaandradina.org", dono: "Elias" },
+      { emailPrincipal: "supervisaolab@santacasaandradina.com.br", emailNovo: "rt.laboratorio@santacasaandradina.org", dono: "Jessica Ferraz" },
+      { emailPrincipal: "suporte.ti@santacasaandradina.com.br", emailNovo: "suporte.ti@santacasaandradina.org", dono: "Eduardo/Rafa" },
+      { emailPrincipal: "uti@santacasaandradina.com.br", emailNovo: "rtenfermagem.uti@santacasaandradina.org", dono: "Enfermeira RT UTI" },
+      { emailPrincipal: "valdir.compras@santacasaandradina.com.br gerencia.compras@santacasaandradina.com.br", emailNovo: "gerencia.suprimentos@santacasaandradina.org", dono: "Valdir" },
+      { emailPrincipal: "vigilancia@santacasaandradina.com.br", emailNovo: "vigilancia@santacasaandradina.org", dono: "?" },
+      { emailPrincipal: "", emailNovo: "uti@santacasaandradina.org", dono: "Lerion" },
+      { emailPrincipal: "viviane.rh@santacasaandradina.com.br andreia.dp@santacasaandradina.com.br", emailNovo: "rh@santacasaandradina.org", dono: "Andreia e Viviane" },
+      { emailPrincipal: "dp@santacasaandradina.com.br", emailNovo: "dp@santacasaandradina.org", dono: "Lidiani" }
     ];
 
     function applyTheme(theme) {
@@ -284,24 +397,65 @@ Atenciosamente,</textarea>
       status.textContent = message;
     }
 
-    function renderAccounts() {
-      const tbody = document.getElementById("accounts");
-      tbody.innerHTML = accounts.map((account, index) => {
-        const passwordNote = account[4] || "Consultar cofre de senhas";
+    function escapeHtml(text) {
+      return String(text || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function migrationKey(row) {
+      return row.emailNovo || row.emailPrincipal;
+    }
+
+    function loadChecked() {
+      try {
+        return JSON.parse(localStorage.getItem(migrationStorageKey) || "{}");
+      } catch {
+        return {};
+      }
+    }
+
+    function saveChecked(checked) {
+      localStorage.setItem(migrationStorageKey, JSON.stringify(checked));
+    }
+
+    function renderMigration() {
+      const checked = loadChecked();
+      const query = document.getElementById("migration-search").value.trim().toLowerCase();
+      const rows = migrationRows.filter((row) => {
+        const text = (row.emailPrincipal + " " + row.emailNovo + " " + row.dono).toLowerCase();
+        return !query || text.includes(query);
+      });
+      const doneTotal = migrationRows.filter((row) => checked[migrationKey(row)]).length;
+      document.getElementById("migration-summary").textContent = doneTotal + " de " + migrationRows.length + " concluidos";
+
+      const tbody = document.getElementById("migration-list");
+      tbody.innerHTML = rows.map((row, index) => {
+        const key = migrationKey(row);
         return '<tr>' +
-          '<td>' + account[0] + '</td>' +
-          '<td><code>' + account[1] + '</code></td>' +
-          '<td class="muted">-</td>' +
-          '<td class="muted">-</td>' +
-          '<td>' + passwordNote + '</td>' +
-          '<td><button class="copy-small" type="button" data-copy="' + index + '">Copiar e-mail</button></td>' +
+          '<td class="check-cell"><input class="done-check" type="checkbox" data-key="' + escapeHtml(key) + '"' + (checked[key] ? ' checked' : '') + '></td>' +
+          '<td><code>' + escapeHtml(row.emailPrincipal || "-") + '</code></td>' +
+          '<td><code>' + escapeHtml(row.emailNovo || "-") + '</code></td>' +
+          '<td>' + escapeHtml(row.dono || "-") + '</td>' +
+          '<td><button class="copy-small" type="button" data-copy="' + index + '">Copiar novo</button></td>' +
         '</tr>';
       }).join("");
 
       document.querySelectorAll("[data-copy]").forEach((button) => {
         button.addEventListener("click", () => {
-          const account = accounts[Number(button.dataset.copy)];
-          copyText(account[1], "E-mail copiado.");
+          const row = rows[Number(button.dataset.copy)];
+          copyText(row.emailNovo || row.emailPrincipal, "E-mail copiado.");
+        });
+      });
+
+      document.querySelectorAll("[data-key]").forEach((checkbox) => {
+        checkbox.addEventListener("change", () => {
+          const updated = loadChecked();
+          updated[checkbox.dataset.key] = checkbox.checked;
+          saveChecked(updated);
+          renderMigration();
         });
       });
     }
@@ -315,7 +469,8 @@ Atenciosamente,</textarea>
     document.getElementById("copy-script").addEventListener("click", () => {
       copyText(document.getElementById("script-text").value, "Script copiado.");
     });
-    renderAccounts();
+    document.getElementById("migration-search").addEventListener("input", renderMigration);
+    renderMigration();
   </script>
 </body>
 </html>
