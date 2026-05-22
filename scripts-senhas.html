@@ -335,8 +335,10 @@ Atenciosamente,</textarea>
 
   <script>
     const themeStorageKey = "santa-casa-theme";
+    const scriptStorageKey = "santa-casa-script-comunicado-v1";
     const themeToggle = document.getElementById("theme-toggle");
     const status = document.getElementById("status");
+    const scriptText = document.getElementById("script-text");
     const migrationStorageKey = "santa-casa-migracao-conferencia-v1";
     const migrationRows = [
       { emailPrincipal: "advogada@santacasaandradina.com.br", emailNovo: "advogada@santacasaandradina.org", dono: "Jessica Siqueira" },
@@ -501,7 +503,12 @@ Atenciosamente,</textarea>
       applyTheme(nextTheme);
     });
     document.getElementById("copy-script").addEventListener("click", () => {
-      copyText(document.getElementById("script-text").value, "Script copiado.");
+      copyText(scriptText.value, "Script copiado.");
+    });
+    scriptText.value = localStorage.getItem(scriptStorageKey) || scriptText.value;
+    scriptText.addEventListener("input", () => {
+      localStorage.setItem(scriptStorageKey, scriptText.value);
+      status.textContent = "Script salvo neste navegador.";
     });
     document.getElementById("migration-search").addEventListener("input", renderMigration);
     document.querySelector(".table-wrap").addEventListener("scroll", (event) => {
