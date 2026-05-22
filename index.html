@@ -464,7 +464,7 @@
       <div class="color-grid">
         <div class="color-field">
           <span>Nome</span>
-          <input id="name-color" type="color" value="#0b2f66">
+          <input id="name-color" type="color" value="#06265a">
         </div>
         <div class="color-field">
           <span>Textos</span>
@@ -472,11 +472,11 @@
         </div>
         <div class="color-field">
           <span>Rotulos</span>
-          <input id="label-color" type="color" value="#005daa">
+          <input id="label-color" type="color" value="#0b4c92">
         </div>
         <div class="color-field">
           <span>Barra</span>
-          <input id="bar-color" type="color" value="#005daa">
+          <input id="bar-color" type="color" value="#0b4c92">
         </div>
       </div>
 
@@ -516,7 +516,7 @@
     const themeStorageKey = "santa-casa-theme";
     const fields = ["name", "role", "department", "extension", "email", "teams", "layout", "name-color", "text-color", "label-color", "bar-color"];
     const savedLogoStorageKey = "santa-casa-uploaded-logos";
-    const selectedLogoStorageKey = "santa-casa-selected-logo-v2";
+    const selectedLogoStorageKey = "santa-casa-selected-logo-v3";
     const logoLibrary = [
       { src: "assets/logos/logo-upload-original.jpg" },
       { src: "assets/logos/logo-santa-casa-assinatura-720x300.png" },
@@ -595,7 +595,7 @@
     };
     let uploadedLogos = loadUploadedLogos();
     const storedLogoSource = localStorage.getItem(selectedLogoStorageKey);
-    let logoSource = logoLibrary.concat(uploadedLogos).some((logo) => logo.src === storedLogoSource) ? storedLogoSource : logoLibrary[0].src;
+    let logoSource = logoLibrary.concat(uploadedLogos).some((logo) => logo.src === storedLogoSource) ? storedLogoSource : logoLibrary[1].src;
     const preview = document.getElementById("preview");
     const output = document.getElementById("html-output");
     const status = document.getElementById("status");
