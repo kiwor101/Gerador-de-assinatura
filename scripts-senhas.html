@@ -271,6 +271,23 @@
       font: 14px Arial, Helvetica, sans-serif;
     }
 
+    .add-form {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+      gap: 10px;
+      margin: 12px 0;
+    }
+
+    .add-form input {
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--field);
+      color: var(--ink);
+      padding: 0 12px;
+      font: 14px Arial, Helvetica, sans-serif;
+    }
+
     .summary {
       display: inline-flex;
       align-items: center;
@@ -329,6 +346,10 @@
       }
 
       .toolbar {
+        grid-template-columns: 1fr;
+      }
+
+      .add-form {
         grid-template-columns: 1fr;
       }
     }
@@ -398,6 +419,12 @@ Atenciosamente,</textarea>
       <div class="toolbar">
         <input id="migration-search" type="search" placeholder="Pesquisar por e-mail ou dono">
         <div class="summary" id="migration-summary">0 de 0 concluidos</div>
+      </div>
+      <div class="add-form">
+        <input id="add-email-principal" type="email" placeholder="E-mail principal">
+        <input id="add-email-novo" type="email" placeholder="E-mail novo">
+        <input id="add-dono" type="text" placeholder="Dono">
+        <button type="button" id="add-migration">Adicionar</button>
       </div>
       <div class="top-scroll" id="top-scroll"><div class="top-scroll-inner" id="top-scroll-inner"></div></div>
       <div class="table-wrap">
@@ -518,7 +545,15 @@ Atenciosamente,</textarea>
     const syncStatus = document.getElementById("sync-status");
     const migrationSearch = document.getElementById("migration-search");
     let migrationData = migrationRows.map((row, index) => ({ ...row, id: "", source: "local", done: false, localIndex: index }));
-    let graphState = { account: null, siteId: "", migrationListId: "", scriptListId: "", scriptItemId: "" };
+    let graphState = {
+      account: null,
+      siteId: "",
+      migrationListId: "",
+      scriptListId: "",
+      scriptItemId: "",
+      migrationColumns: {},
+      scriptColumns: {}
+    };
     const msalApp = window.msal ? new msal.PublicClientApplication({
       auth: {
         clientId: graphConfig.clientId,
@@ -558,14 +593,35 @@ Atenciosamente,</textarea>
       return done ? "sim" : "Não";
     }
 
-    function fieldValue(fields, names) {
+    function normalizeColumnName(name) {
+      return String(name || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/_x0020_/gi, "")
+        .replace(/[^a-z0-9]/gi, "")
+        .toLowerCase();
+    }
+
+    function fieldValue(fields, names, columnMap = {}) {
       const keys = Object.keys(fields || {});
       for (const name of names) {
+        const mapped = columnMap[name] || columnMap[normalizeColumnName(name)];
+        if (mapped && fields[mapped] !== undefined) return fields[mapped];
         if (fields[name] !== undefined) return fields[name];
-        const match = keys.find((key) => key.toLowerCase() === name.toLowerCase());
+        const wanted = normalizeColumnName(name);
+        const match = keys.find((key) => normalizeColumnName(key) === wanted);
         if (match) return fields[match];
       }
       return "";
+    }
+
+    function fieldPatch(columnMap, pairs) {
+      const patch = {};
+      pairs.forEach(([name, value]) => {
+        const key = columnMap[name] || columnMap[normalizeColumnName(name)] || name;
+        patch[key] = value;
+      });
+      return patch;
     }
 
     async function getToken() {
@@ -612,12 +668,28 @@ Atenciosamente,</textarea>
       return list.id;
     }
 
+    async function loadColumnMap(siteId, listId) {
+      const data = await graph("/sites/" + siteId + "/lists/" + listId + "/columns?$top=999");
+      const map = {};
+      (data.value || []).forEach((column) => {
+        const display = column.displayName || column.name;
+        const internal = column.name;
+        map[display] = internal;
+        map[internal] = internal;
+        map[normalizeColumnName(display)] = internal;
+        map[normalizeColumnName(internal)] = internal;
+      });
+      return map;
+    }
+
     async function loadSharePointData() {
       syncStatus.textContent = "Conectando ao SharePoint...";
       const site = await graph("/sites/" + graphConfig.host + ":" + graphConfig.sitePath);
       graphState.siteId = site.id;
       graphState.migrationListId = await listByName(site.id, graphConfig.migrationListName);
       graphState.scriptListId = await listByName(site.id, graphConfig.scriptListName);
+      graphState.migrationColumns = await loadColumnMap(site.id, graphState.migrationListId);
+      graphState.scriptColumns = await loadColumnMap(site.id, graphState.scriptListId);
 
       const items = await graph("/sites/" + site.id + "/lists/" + graphState.migrationListId + "/items?$expand=fields&$top=999");
       migrationData = (items.value || []).map((item) => {
@@ -625,10 +697,10 @@ Atenciosamente,</textarea>
         return {
           id: item.id,
           source: "sharepoint",
-          emailPrincipal: fieldValue(fields, ["EmailPrincipal", "Email Principal", "Title"]),
-          emailNovo: fieldValue(fields, ["EmailNovo", "Email Novo"]),
-          dono: fieldValue(fields, ["Dono"]),
-          done: normalizeDone(fieldValue(fields, ["Concluido", "Concluído"]))
+          emailPrincipal: fieldValue(fields, ["EmailPrincipal", "Email Principal", "Title"], graphState.migrationColumns),
+          emailNovo: fieldValue(fields, ["EmailNovo", "Email Novo"], graphState.migrationColumns),
+          dono: fieldValue(fields, ["Dono"], graphState.migrationColumns),
+          done: normalizeDone(fieldValue(fields, ["Concluido", "Concluído"], graphState.migrationColumns))
         };
       });
 
@@ -642,7 +714,7 @@ Atenciosamente,</textarea>
       const item = (items.value || []).find((entry) => String(entry.fields?.Title || "").toLowerCase() === "script_migracao") || (items.value || [])[0];
       if (!item) return;
       graphState.scriptItemId = item.id;
-      const text = fieldValue(item.fields, ["TextoScript", "Texto Script"]);
+      const text = fieldValue(item.fields, ["TextoScript", "Texto Script"], graphState.scriptColumns);
       if (text) {
         scriptText.value = text;
         localStorage.setItem(scriptStorageKey, text);
@@ -655,7 +727,7 @@ Atenciosamente,</textarea>
       }
       await graph("/sites/" + graphState.siteId + "/lists/" + graphState.scriptListId + "/items/" + graphState.scriptItemId + "/fields", {
         method: "PATCH",
-        body: JSON.stringify({ TextoScript: scriptText.value })
+        body: JSON.stringify(fieldPatch(graphState.scriptColumns, [["TextoScript", scriptText.value]]))
       });
       status.textContent = "Script salvo no SharePoint.";
     }
@@ -663,11 +735,40 @@ Atenciosamente,</textarea>
     async function toggleSharePointDone(row, checked) {
       await graph("/sites/" + graphState.siteId + "/lists/" + graphState.migrationListId + "/items/" + row.id + "/fields", {
         method: "PATCH",
-        body: JSON.stringify({ Concluido: doneValue(checked) })
+        body: JSON.stringify(fieldPatch(graphState.migrationColumns, [["Concluido", doneValue(checked)]]))
       });
       row.done = checked;
       syncStatus.textContent = "Conferencia salva no SharePoint.";
       renderMigration();
+    }
+
+    async function addSharePointMigration() {
+      const emailPrincipal = document.getElementById("add-email-principal").value.trim();
+      const emailNovo = document.getElementById("add-email-novo").value.trim();
+      const dono = document.getElementById("add-dono").value.trim();
+      if (!emailPrincipal && !emailNovo) {
+        syncStatus.textContent = "Preencha pelo menos um e-mail para adicionar.";
+        return;
+      }
+      if (!graphState.migrationListId) {
+        await loadSharePointData();
+      }
+      const fields = fieldPatch(graphState.migrationColumns, [
+        ["EmailPrincipal", emailPrincipal],
+        ["EmailNovo", emailNovo],
+        ["Dono", dono],
+        ["Concluido", "Não"]
+      ]);
+      if (!fields.Title) fields.Title = emailPrincipal || emailNovo;
+      await graph("/sites/" + graphState.siteId + "/lists/" + graphState.migrationListId + "/items", {
+        method: "POST",
+        body: JSON.stringify({ fields })
+      });
+      document.getElementById("add-email-principal").value = "";
+      document.getElementById("add-email-novo").value = "";
+      document.getElementById("add-dono").value = "";
+      syncStatus.textContent = "Item adicionado no SharePoint.";
+      await loadSharePointData();
     }
 
     function renderMigration() {
@@ -747,6 +848,13 @@ Atenciosamente,</textarea>
         await loadSharePointData();
       } catch {
         syncStatus.textContent = "Nao consegui atualizar a lista.";
+      }
+    });
+    document.getElementById("add-migration").addEventListener("click", async () => {
+      try {
+        await addSharePointMigration();
+      } catch (error) {
+        syncStatus.textContent = "Nao consegui adicionar no SharePoint. Confira os campos e tente novamente.";
       }
     });
     scriptText.value = localStorage.getItem(scriptStorageKey) || scriptText.value;
