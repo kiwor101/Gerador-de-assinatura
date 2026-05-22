@@ -109,36 +109,8 @@
       line-height: 22px;
     }
 
-    .quick-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
-    }
-
-    .quick-link {
-      min-height: 70px;
-      align-content: center;
-      justify-items: start;
-      border: 1px solid var(--line);
-      background: var(--soft);
-      padding: 12px;
-      text-align: left;
-    }
-
-    .quick-link strong {
-      display: block;
-      margin-bottom: 5px;
-      color: var(--blue);
-      font-size: 14px;
-      line-height: 18px;
-    }
-
-    .quick-link span {
-      display: block;
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 400;
-      line-height: 16px;
+    .hidden {
+      display: none !important;
     }
 
     .note {
@@ -341,10 +313,6 @@
         flex-direction: column;
       }
 
-      .quick-grid {
-        grid-template-columns: 1fr;
-      }
-
       .toolbar {
         grid-template-columns: 1fr;
       }
@@ -365,29 +333,14 @@
       </div>
     </header>
 
-    <section class="panel">
-      <h2>Painel SharePoint</h2>
-      <p class="note">Use estes atalhos para abrir as listas oficiais salvas online. As marcacoes feitas no SharePoint aparecem para todos os computadores autorizados.</p>
-      <div class="quick-grid">
-        <a class="quick-link" href="https://santacasaandradina.sharepoint.com/sites/IRMANDADEDASANTACASADEANDRADINA-TECNOLOGIADAINFORMAO/Lists/Controle%20Migracao%20Emails/Pendentes.aspx" target="_blank" rel="noopener">
-          <strong>Pendentes</strong>
-          <span>Setores ainda nao conferidos</span>
-        </a>
-        <a class="quick-link" href="https://santacasaandradina.sharepoint.com/sites/IRMANDADEDASANTACASADEANDRADINA-TECNOLOGIADAINFORMAO/Lists/Controle%20Migracao%20Emails/Concluidos.aspx" target="_blank" rel="noopener">
-          <strong>Concluidos</strong>
-          <span>Setores ja marcados como feitos</span>
-        </a>
-        <a class="quick-link" href="https://santacasaandradina.sharepoint.com/sites/IRMANDADEDASANTACASADEANDRADINA-TECNOLOGIADAINFORMAO/Lists/Controle%20Migracao%20Emails/AllItems.aspx" target="_blank" rel="noopener">
-          <strong>Todos</strong>
-          <span>Lista completa de migracao</span>
-        </a>
-        <a class="quick-link" href="https://santacasaandradina.sharepoint.com/sites/IRMANDADEDASANTACASADEANDRADINA-TECNOLOGIADAINFORMAO/Lists/Script%20Migracao%20Email/AllItems.aspx" target="_blank" rel="noopener">
-          <strong>Texto do comunicado</strong>
-          <span>Script editavel salvo online</span>
-        </a>
-      </div>
+    <section class="panel" id="auth-panel">
+      <h2>Acesso Microsoft</h2>
+      <p class="note">Entre com sua conta Microsoft para carregar o script e a conferencia salvos no SharePoint.</p>
+      <button type="button" id="login-sharepoint">Entrar</button>
+      <div class="status" id="auth-status" aria-live="polite"></div>
     </section>
 
+    <div id="protected-content" class="hidden">
     <section class="panel">
       <h2>Script de Comunicado</h2>
       <p class="note">Texto padrao para informar contatos sobre a mudanca de e-mail.</p>
@@ -403,18 +356,16 @@ Novo e-mail: ______________________________
 Atenciosamente,</textarea>
       <div class="sync-bar">
         <button type="button" id="copy-script">Copiar script</button>
-        <button type="button" id="save-script">Salvar no SharePoint</button>
+        <span class="sync-status" id="script-sync-status">Alteracoes salvas automaticamente no SharePoint.</span>
       </div>
       <div class="status" id="status" aria-live="polite"></div>
     </section>
 
     <section class="panel">
       <h2>Conferencia de Migracao</h2>
-      <p class="note">Marque os setores ja conferidos. Ao entrar com a conta Microsoft, a marcacao e salva direto no SharePoint.</p>
+      <p class="note">Marque os setores ja conferidos. Cada alteracao e salva automaticamente no SharePoint.</p>
       <div class="sync-bar">
-        <button type="button" id="connect-sharepoint">Entrar e sincronizar</button>
-        <button type="button" id="refresh-sharepoint">Atualizar lista</button>
-        <span class="sync-status" id="sync-status">Usando lista local ate conectar ao SharePoint.</span>
+        <span class="sync-status" id="sync-status">Conectado ao SharePoint.</span>
       </div>
       <div class="toolbar">
         <input id="migration-search" type="search" placeholder="Pesquisar por e-mail ou dono">
@@ -441,6 +392,7 @@ Atenciosamente,</textarea>
         </table>
       </div>
     </section>
+    </div>
   </main>
 
   <footer class="footer">Copyright &copy; 2026 kiwors.</footer>
@@ -451,6 +403,8 @@ Atenciosamente,</textarea>
     const scriptStorageKey = "santa-casa-script-comunicado-v1";
     const themeToggle = document.getElementById("theme-toggle");
     const status = document.getElementById("status");
+    const authStatus = document.getElementById("auth-status");
+    const scriptSyncStatus = document.getElementById("script-sync-status");
     const scriptText = document.getElementById("script-text");
     const migrationStorageKey = "santa-casa-migracao-conferencia-v1";
     const migrationRows = [
@@ -544,7 +498,8 @@ Atenciosamente,</textarea>
     };
     const syncStatus = document.getElementById("sync-status");
     const migrationSearch = document.getElementById("migration-search");
-    let migrationData = migrationRows.map((row, index) => ({ ...row, id: "", source: "local", done: false, localIndex: index }));
+    let migrationData = [];
+    let scriptSaveTimer = 0;
     let graphState = {
       account: null,
       siteId: "",
@@ -683,7 +638,7 @@ Atenciosamente,</textarea>
     }
 
     async function loadSharePointData() {
-      syncStatus.textContent = "Conectando ao SharePoint...";
+      authStatus.textContent = "Conectando ao SharePoint...";
       const site = await graph("/sites/" + graphConfig.host + ":" + graphConfig.sitePath);
       graphState.siteId = site.id;
       graphState.migrationListId = await listByName(site.id, graphConfig.migrationListName);
@@ -705,7 +660,10 @@ Atenciosamente,</textarea>
       });
 
       await loadSharePointScript();
-      syncStatus.textContent = "Conectado ao SharePoint. Alteracoes serao salvas online.";
+      document.getElementById("auth-panel").classList.add("hidden");
+      document.getElementById("protected-content").classList.remove("hidden");
+      authStatus.textContent = "";
+      syncStatus.textContent = "Conectado ao SharePoint. Alteracoes salvas automaticamente.";
       renderMigration();
     }
 
@@ -729,7 +687,7 @@ Atenciosamente,</textarea>
         method: "PATCH",
         body: JSON.stringify(fieldPatch(graphState.scriptColumns, [["TextoScript", scriptText.value]]))
       });
-      status.textContent = "Script salvo no SharePoint.";
+      scriptSyncStatus.textContent = "Script salvo no SharePoint.";
     }
 
     async function toggleSharePointDone(row, checked) {
@@ -802,9 +760,6 @@ Atenciosamente,</textarea>
               syncStatus.textContent = "Nao consegui salvar no SharePoint. Tente sincronizar novamente.";
               checkbox.disabled = false;
             }
-          } else {
-            row.done = checkbox.checked;
-            renderMigration();
           }
         });
       });
@@ -829,25 +784,11 @@ Atenciosamente,</textarea>
     document.getElementById("copy-script").addEventListener("click", () => {
       copyText(scriptText.value, "Script copiado.");
     });
-    document.getElementById("save-script").addEventListener("click", async () => {
-      try {
-        await saveSharePointScript();
-      } catch {
-        status.textContent = "Nao consegui salvar no SharePoint. Clique em Entrar e sincronizar.";
-      }
-    });
-    document.getElementById("connect-sharepoint").addEventListener("click", async () => {
+    document.getElementById("login-sharepoint").addEventListener("click", async () => {
       try {
         await loadSharePointData();
       } catch (error) {
-        syncStatus.textContent = "Nao consegui conectar ao SharePoint. Confira login e permissoes.";
-      }
-    });
-    document.getElementById("refresh-sharepoint").addEventListener("click", async () => {
-      try {
-        await loadSharePointData();
-      } catch {
-        syncStatus.textContent = "Nao consegui atualizar a lista.";
+        authStatus.textContent = "Nao consegui conectar ao SharePoint. Confira login e permissoes.";
       }
     });
     document.getElementById("add-migration").addEventListener("click", async () => {
@@ -860,7 +801,15 @@ Atenciosamente,</textarea>
     scriptText.value = localStorage.getItem(scriptStorageKey) || scriptText.value;
     scriptText.addEventListener("input", () => {
       localStorage.setItem(scriptStorageKey, scriptText.value);
-      status.textContent = "Script salvo neste navegador. Use Salvar no SharePoint para publicar.";
+      scriptSyncStatus.textContent = "Salvando...";
+      clearTimeout(scriptSaveTimer);
+      scriptSaveTimer = setTimeout(async () => {
+        try {
+          await saveSharePointScript();
+        } catch {
+          scriptSyncStatus.textContent = "Nao consegui salvar no SharePoint.";
+        }
+      }, 700);
     });
     migrationSearch.addEventListener("input", renderMigration);
     document.querySelector(".table-wrap").addEventListener("scroll", (event) => {
