@@ -129,6 +129,20 @@
       line-height: 22px;
     }
 
+    .top-scroll {
+      overflow-x: auto;
+      overflow-y: hidden;
+      height: 14px;
+      margin-bottom: 6px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--soft);
+    }
+
+    .top-scroll-inner {
+      height: 1px;
+    }
+
     .table-wrap {
       overflow-x: auto;
       border: 1px solid var(--line);
@@ -137,9 +151,10 @@
 
     table {
       width: 100%;
-      min-width: 860px;
+      min-width: 0;
       border-collapse: collapse;
       background: var(--panel);
+      table-layout: fixed;
     }
 
     th,
@@ -150,6 +165,32 @@
       vertical-align: middle;
       font-size: 14px;
       line-height: 18px;
+    }
+
+    th:nth-child(1),
+    td:nth-child(1) {
+      width: 72px;
+    }
+
+    th:nth-child(2),
+    td:nth-child(2) {
+      width: 41%;
+    }
+
+    th:nth-child(3),
+    td:nth-child(3) {
+      width: 34%;
+    }
+
+    th:nth-child(4),
+    td:nth-child(4) {
+      width: 25%;
+    }
+
+    td code {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      white-space: normal;
     }
 
     th {
@@ -171,16 +212,7 @@
       color: var(--muted);
     }
 
-    .copy-small {
-      min-height: 30px;
-      background: var(--soft);
-      color: var(--blue);
-      padding: 0 10px;
-      font-size: 12px;
-    }
-
     .check-cell {
-      width: 92px;
       text-align: center;
     }
 
@@ -282,6 +314,7 @@ Atenciosamente,</textarea>
         <input id="migration-search" type="search" placeholder="Pesquisar por e-mail ou dono">
         <div class="summary" id="migration-summary">0 de 0 concluidos</div>
       </div>
+      <div class="top-scroll" id="top-scroll"><div class="top-scroll-inner" id="top-scroll-inner"></div></div>
       <div class="table-wrap">
         <table>
           <thead>
@@ -290,7 +323,6 @@ Atenciosamente,</textarea>
               <th>E-mail principal</th>
               <th>E-mail novo</th>
               <th>Dono</th>
-              <th>Acao</th>
             </tr>
           </thead>
           <tbody id="migration-list"></tbody>
@@ -439,16 +471,8 @@ Atenciosamente,</textarea>
           '<td><code>' + escapeHtml(row.emailPrincipal || "-") + '</code></td>' +
           '<td><code>' + escapeHtml(row.emailNovo || "-") + '</code></td>' +
           '<td>' + escapeHtml(row.dono || "-") + '</td>' +
-          '<td><button class="copy-small" type="button" data-copy="' + index + '">Copiar novo</button></td>' +
         '</tr>';
       }).join("");
-
-      document.querySelectorAll("[data-copy]").forEach((button) => {
-        button.addEventListener("click", () => {
-          const row = rows[Number(button.dataset.copy)];
-          copyText(row.emailNovo || row.emailPrincipal, "E-mail copiado.");
-        });
-      });
 
       document.querySelectorAll("[data-key]").forEach((checkbox) => {
         checkbox.addEventListener("change", () => {
@@ -458,6 +482,16 @@ Atenciosamente,</textarea>
           renderMigration();
         });
       });
+
+      syncTopScrollWidth();
+    }
+
+    function syncTopScrollWidth() {
+      const wrap = document.querySelector(".table-wrap");
+      const topScroll = document.getElementById("top-scroll");
+      const topInner = document.getElementById("top-scroll-inner");
+      topInner.style.width = wrap.scrollWidth + "px";
+      topScroll.style.display = wrap.scrollWidth > wrap.clientWidth ? "block" : "none";
     }
 
     applyTheme(localStorage.getItem(themeStorageKey) || "light");
@@ -470,6 +504,13 @@ Atenciosamente,</textarea>
       copyText(document.getElementById("script-text").value, "Script copiado.");
     });
     document.getElementById("migration-search").addEventListener("input", renderMigration);
+    document.querySelector(".table-wrap").addEventListener("scroll", (event) => {
+      document.getElementById("top-scroll").scrollLeft = event.target.scrollLeft;
+    });
+    document.getElementById("top-scroll").addEventListener("scroll", (event) => {
+      document.querySelector(".table-wrap").scrollLeft = event.target.scrollLeft;
+    });
+    window.addEventListener("resize", syncTopScrollWidth);
     renderMigration();
   </script>
 </body>
