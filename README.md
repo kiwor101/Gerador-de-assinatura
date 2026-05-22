@@ -39,7 +39,9 @@ index.html
 - Copia da assinatura pronta para colar no Outlook.
 - Geracao e download da assinatura como PNG.
 - Modo claro e modo escuro na interface do gerador.
-- Pagina auxiliar de script e conferencia de migracao de e-mails.
+- Pagina auxiliar de script e conferencia de migracao de e-mails com login Microsoft.
+- Sincronizacao online com listas do SharePoint para a equipe autorizada.
+- Icone de navegador para aba e favoritos.
 
 ## Como Usar
 
@@ -105,11 +107,18 @@ A assinatura, a pre-visualizacao e a PNG gerada continuam com fundo branco para 
 
 ## Scripts e Conferencia
 
-O botao `Scripts SharePoint` abre a lista oficial do Microsoft SharePoint usada para acompanhar a migracao de e-mails por setor.
+O botao `Scripts e conferencia` abre uma pagina protegida por login Microsoft.
 
-No SharePoint, as marcacoes ficam salvas online e podem ser acessadas em computadores diferentes pela equipe autorizada.
+Depois de entrar, a pagina carrega os dados da lista `Controle Migracao Emails` do SharePoint em uma tabela limpa dentro do proprio site.
 
-A lista `Script Migracao Email` guarda o texto padrao de comunicacao da mudanca de e-mail.
+Ao marcar ou desmarcar uma conferencia, a alteracao e salva diretamente no SharePoint.
+
+A lista `Script Migracao Email` guarda o texto padrao de comunicacao da mudanca de e-mail. Ao editar o texto no site, ele tambem e salvo automaticamente no SharePoint.
+
+O acesso depende de duas permissoes:
+
+- O usuario precisa pertencer a organizacao Microsoft 365 da instituicao.
+- O usuario precisa ter permissao nas listas do SharePoint.
 
 ## Estrutura
 
@@ -123,6 +132,7 @@ A lista `Script Migracao Email` guarda o texto padrao de comunicacao da mudanca 
 |-- logo-santa-casa.png
 |-- .nojekyll
 `-- assets/
+    |-- favicon.svg
     `-- logos/
 ```
 
