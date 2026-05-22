@@ -403,7 +403,7 @@
       <h1>Gerador de Assinatura</h1>
       <p class="subtitle">Preencha os campos e copie a assinatura pronta para o usu&aacute;rio.</p>
       <button class="theme-toggle" type="button" id="theme-toggle">Modo escuro</button>
-      <a class="nav-button" id="scripts-link" href="scripts-senhas.html">Scripts SharePoint</a>
+      <a class="nav-button" id="scripts-link" href="https://santacasaandradina.sharepoint.com/sites/IRMANDADEDASANTACASADEANDRADINA-TECNOLOGIADAINFORMAO/Lists/Controle%20Migracao%20Emails/AllItems.aspx" target="_blank" rel="noopener">Scripts SharePoint</a>
 
       <div class="field">
         <label for="name">Nome completo</label>
@@ -525,8 +525,10 @@
     const fixedSite = "www.santacasaandradina.com.br";
     const fixedAddress = "Av. Guanabara, 730 - Centro, Andradina - SP, 16901-901";
     const fixedEmailDomain = "@santacasaandradina.org";
-    const publicAssetBaseUrl = "https://kiwor101.github.io/Gerador-de-assinatura/";
-    const scriptsSharePointUrl = "";
+    const fallbackAssetBaseUrl = "https://kiwor101.github.io/Gerador-de-assinatura/";
+    const publicAssetBaseUrl = location.protocol === "file:" || /^(localhost|127\.0\.0\.1)$/i.test(location.hostname)
+      ? fallbackAssetBaseUrl
+      : location.origin + location.pathname.replace(/[^\/]*$/, "");
     const themeStorageKey = "santa-casa-theme";
     const fields = ["name", "role", "department", "extension", "email", "teams", "layout", "name-color", "text-color", "label-color", "bar-color"];
     const savedLogoStorageKey = "santa-casa-uploaded-logos";
@@ -721,6 +723,12 @@
       return publicAssetBaseUrl + src.replace(/^\/+/, "");
     }
 
+    function signatureLogoSource(src) {
+      if (/^blob:/i.test(src)) return "";
+      if (/^(data:|https?:)/i.test(src)) return src;
+      return publicLogoSource(src);
+    }
+
     function currentLayout() {
       return layouts[value("layout")] || layouts.classic;
     }
@@ -770,7 +778,7 @@
       const extension = escapeHtml(value("extension"));
       const email = escapeHtml(withFixedDomain(value("email")));
       const teams = escapeHtml(withFixedDomain(value("teams")) || withFixedDomain(value("email")));
-      const logo = escapeHtml(publicLogoSource(logoSource));
+      const logo = escapeHtml(signatureLogoSource(logoSource));
       const nameColor = color("name-color", "#09275c");
       const textColor = color("text-color", "#2f3b4a");
       const labelColor = color("label-color", "#b98a24");
@@ -805,6 +813,7 @@
     function loadImage(src) {
       return new Promise((resolve, reject) => {
         const image = new Image();
+        if (/^https?:/i.test(src)) image.crossOrigin = "anonymous";
         image.onload = () => resolve(image);
         image.onerror = reject;
         image.src = src;
@@ -830,21 +839,9 @@
       ctx.drawImage(image, x + ((maxWidth - width) / 2), y + ((maxHeight - height) / 2), width, height);
     }
 
-    async function imageDataUrl(src) {
-      if (src.startsWith("data:")) return src;
-      const response = await fetch(src);
-      const blob = await response.blob();
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
-    }
-
     async function imageBlob() {
       const layout = currentLayout();
-      const scale = 2;
+      const scale = 1;
       const width = layout.width;
       const height = 150;
       const canvas = document.createElement("canvas");
@@ -871,8 +868,7 @@
       ctx.fillRect(dividerX, topPadding, 1, contentBottom - topPadding - 8);
 
       try {
-        const logoDataUrl = await imageDataUrl(publicLogoSource(logoSource));
-        const logoImage = await loadImage(logoDataUrl);
+        const logoImage = await loadImage(publicLogoSource(logoSource));
         drawContainedImage(ctx, logoImage, 0, 13, layout.logoCell - layout.gap, 75);
       } catch {
         ctx.fillStyle = "#f3f5f7";
@@ -969,13 +965,6 @@
         return;
       }
       await copyText(html, "HTML copiado.");
-    }
-
-    const scriptsLink = document.getElementById("scripts-link");
-    if (scriptsSharePointUrl) {
-      scriptsLink.href = scriptsSharePointUrl;
-      scriptsLink.target = "_blank";
-      scriptsLink.rel = "noopener";
     }
 
     fields.forEach((id) => document.getElementById(id).addEventListener("input", render));

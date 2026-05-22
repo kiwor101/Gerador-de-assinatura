@@ -12,6 +12,12 @@ GitHub Pages:
 https://kiwor101.github.io/Gerador-de-assinatura/
 ```
 
+Dominio personalizado:
+
+```text
+https://geradorassinatura.santacasaandradina.org/
+```
+
 Arquivo local principal:
 
 ```text
@@ -27,7 +33,7 @@ index.html
 - Inclusao de logo por link publico.
 - Inclusao de logo por arquivo local para teste.
 - Exclusao de logos adicionadas pelo usuario.
-- Presets de cores para uso normal ou campanhas.
+- Presets de cores para ajustar a identidade visual.
 - Modelos para Outlook Classic e Outlook Web compacto.
 - Geracao de assinatura em HTML.
 - Copia da assinatura pronta para colar no Outlook.
@@ -99,9 +105,11 @@ A assinatura, a pre-visualizacao e a PNG gerada continuam com fundo branco para 
 
 ## Scripts e Conferencia
 
-A pagina `scripts-senhas.html` contem um texto padrao para comunicar mudanca de e-mail e uma lista de conferencia da migracao por setor.
+O botao `Scripts SharePoint` abre a lista oficial do Microsoft SharePoint usada para acompanhar a migracao de e-mails por setor.
 
-A marcacao da conferencia fica salva no navegador por meio de `localStorage`. Em GitHub Pages puro, essa marcacao nao e compartilhada entre computadores ou usuarios diferentes.
+No SharePoint, as marcacoes ficam salvas online e podem ser acessadas em computadores diferentes pela equipe autorizada.
+
+A lista `Script Migracao Email` guarda o texto padrao de comunicacao da mudanca de e-mail.
 
 ## Estrutura
 
