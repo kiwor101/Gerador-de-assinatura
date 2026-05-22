@@ -403,7 +403,7 @@
       <h1>Gerador de Assinatura</h1>
       <p class="subtitle">Preencha os campos e copie a assinatura pronta para o usu&aacute;rio.</p>
       <button class="theme-toggle" type="button" id="theme-toggle">Modo escuro</button>
-      <a class="nav-button" id="scripts-link" href="https://santacasaandradina.sharepoint.com/sites/IRMANDADEDASANTACASADEANDRADINA-TECNOLOGIADAINFORMAO/Lists/Controle%20Migracao%20Emails/AllItems.aspx" target="_blank" rel="noopener">Scripts SharePoint</a>
+      <a class="nav-button" id="scripts-link" href="scripts-senhas.html">Scripts e conferencia</a>
 
       <div class="field">
         <label for="name">Nome completo</label>
@@ -843,7 +843,15 @@
       const layout = currentLayout();
       const scale = 1;
       const width = layout.width;
-      const height = 150;
+      const rows = contactRows().filter((row) => row.value);
+      const topPadding = 8;
+      const rowStartY = 73;
+      const rowStep = layout.textSize + 7;
+      const lastRowY = rows.length ? rowStartY + ((rows.length - 1) * rowStep) : 52;
+      const contentBottom = Math.max(112, lastRowY + 18);
+      const footerY = contentBottom + 18;
+      const noticeY = footerY + 17;
+      const height = noticeY + 10;
       const canvas = document.createElement("canvas");
       canvas.width = width * scale;
       canvas.height = height * scale;
@@ -857,8 +865,6 @@
       const labelColor = color("label-color", "#b98a24");
       const barColor = color("bar-color", "#b98a24");
       const leftPadding = 0;
-      const topPadding = 8;
-      const contentBottom = 111;
       const dividerX = layout.logoCell;
       const textX = dividerX + layout.gap;
       const maxTextWidth = width - textX;
@@ -869,10 +875,10 @@
 
       try {
         const logoImage = await loadImage(publicLogoSource(logoSource));
-        drawContainedImage(ctx, logoImage, 0, 13, layout.logoCell - layout.gap, 75);
+        drawContainedImage(ctx, logoImage, 0, topPadding + 5, layout.logoCell - layout.gap, contentBottom - topPadding - 18);
       } catch {
         ctx.fillStyle = "#f3f5f7";
-        ctx.fillRect(0, 13, layout.logoCell - layout.gap, 75);
+        ctx.fillRect(0, topPadding + 5, layout.logoCell - layout.gap, contentBottom - topPadding - 18);
         fitText(ctx, "Logo indisponivel", 14, 55, layout.logoCell - 28, {
           color: "#7a828c",
           size: 12,
@@ -893,28 +899,35 @@
       });
 
       let rowY = 73;
-      contactRows().forEach((row) => {
-        if (!row.value) return;
+      rows.forEach((row) => {
         const label = (row.htmlLabel || row.label).replace("Endere&ccedil;o:", "Endereco:");
         const labelText = label + " ";
         ctx.font = "bold " + layout.textSize + "px Arial";
         ctx.fillStyle = labelColor;
         ctx.fillText(labelText, textX, rowY);
         const labelWidth = ctx.measureText(labelText).width;
-        fitText(ctx, row.value + (row.muted || ""), textX + labelWidth, rowY, maxTextWidth - labelWidth, {
+        fitText(ctx, row.value, textX + labelWidth, rowY, maxTextWidth - labelWidth, {
           color: textColor,
           size: layout.textSize,
           minSize: 9
         });
+        if (row.muted) {
+          const valueWidth = ctx.measureText(row.value).width;
+          fitText(ctx, row.muted, textX + labelWidth + valueWidth + 2, rowY, maxTextWidth - labelWidth - valueWidth - 2, {
+            color: "#7a828c",
+            size: layout.textSize,
+            minSize: 9
+          });
+        }
         rowY += layout.textSize + 7;
       });
 
       ctx.fillStyle = "#7a828c";
       ctx.font = layout.footerSize + "px Arial";
-      ctx.fillText("Irmandade Santa Casa de Andradina | Desde 1940", 0, 127);
+      ctx.fillText("Irmandade Santa Casa de Andradina | Desde 1940", 0, footerY);
       ctx.fillStyle = "#9aa1aa";
       ctx.font = "10px Arial";
-      ctx.fillText("Esta mensagem pode conter informacoes confidenciais destinadas exclusivamente ao destinatario.", 0, 144);
+      ctx.fillText("Esta mensagem pode conter informacoes confidenciais destinadas exclusivamente ao destinatario.", 0, noticeY);
 
       return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
     }

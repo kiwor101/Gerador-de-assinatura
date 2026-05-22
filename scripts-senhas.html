@@ -109,6 +109,38 @@
       line-height: 22px;
     }
 
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .quick-link {
+      min-height: 70px;
+      align-content: center;
+      justify-items: start;
+      border: 1px solid var(--line);
+      background: var(--soft);
+      padding: 12px;
+      text-align: left;
+    }
+
+    .quick-link strong {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--blue);
+      font-size: 14px;
+      line-height: 18px;
+    }
+
+    .quick-link span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 16px;
+    }
+
     .note {
       margin: 0 0 14px;
       color: var(--muted);
@@ -277,6 +309,10 @@
         align-items: flex-start;
         flex-direction: column;
       }
+
+      .quick-grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -289,6 +325,29 @@
         <button type="button" id="theme-toggle">Modo escuro</button>
       </div>
     </header>
+
+    <section class="panel">
+      <h2>Painel SharePoint</h2>
+      <p class="note">Use estes atalhos para abrir as listas oficiais salvas online. As marcacoes feitas no SharePoint aparecem para todos os computadores autorizados.</p>
+      <div class="quick-grid">
+        <a class="quick-link" href="https://santacasaandradina.sharepoint.com/sites/IRMANDADEDASANTACASADEANDRADINA-TECNOLOGIADAINFORMAO/Lists/Controle%20Migracao%20Emails/Pendentes.aspx" target="_blank" rel="noopener">
+          <strong>Pendentes</strong>
+          <span>Setores ainda nao conferidos</span>
+        </a>
+        <a class="quick-link" href="https://santacasaandradina.sharepoint.com/sites/IRMANDADEDASANTACASADEANDRADINA-TECNOLOGIADAINFORMAO/Lists/Controle%20Migracao%20Emails/Concluidos.aspx" target="_blank" rel="noopener">
+          <strong>Concluidos</strong>
+          <span>Setores ja marcados como feitos</span>
+        </a>
+        <a class="quick-link" href="https://santacasaandradina.sharepoint.com/sites/IRMANDADEDASANTACASADEANDRADINA-TECNOLOGIADAINFORMAO/Lists/Controle%20Migracao%20Emails/AllItems.aspx" target="_blank" rel="noopener">
+          <strong>Todos</strong>
+          <span>Lista completa de migracao</span>
+        </a>
+        <a class="quick-link" href="https://santacasaandradina.sharepoint.com/sites/IRMANDADEDASANTACASADEANDRADINA-TECNOLOGIADAINFORMAO/Lists/Script%20Migracao%20Email/AllItems.aspx" target="_blank" rel="noopener">
+          <strong>Texto do comunicado</strong>
+          <span>Script editavel salvo online</span>
+        </a>
+      </div>
+    </section>
 
     <section class="panel">
       <h2>Script de Comunicado</h2>
