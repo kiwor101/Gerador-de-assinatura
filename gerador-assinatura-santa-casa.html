@@ -325,6 +325,18 @@
       color: var(--blue);
     }
 
+    .nav-button {
+      display: grid;
+      place-items: center;
+      min-height: 42px;
+      margin: -8px 0 18px;
+      border-radius: 6px;
+      background: var(--button-soft);
+      color: var(--button-soft-text);
+      font: 700 13px Arial, Helvetica, sans-serif;
+      text-decoration: none;
+    }
+
     .wide {
       grid-column: 1 / -1;
     }
@@ -391,6 +403,7 @@
       <h1>Gerador de Assinatura</h1>
       <p class="subtitle">Preencha os campos e copie a assinatura pronta para o usu&aacute;rio.</p>
       <button class="theme-toggle" type="button" id="theme-toggle">Modo escuro</button>
+      <a class="nav-button" href="scripts-senhas.html">Scripts e senhas</a>
 
       <div class="field">
         <label for="name">Nome completo</label>

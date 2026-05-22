@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scripts e Senhas - Santa Casa</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --blue: #09275c;
+      --ink: #253142;
+      --muted: #697282;
+      --line: #dfe4ea;
+      --surface: #f6f8fb;
+      --panel: #ffffff;
+      --field: #ffffff;
+      --soft: #f4f7fa;
+      --gold: #b98a24;
+    }
+
+    body.dark {
+      color-scheme: dark;
+      --blue: #a9c7ff;
+      --ink: #e7edf6;
+      --muted: #aab7c8;
+      --line: #26364a;
+      --surface: #0f1724;
+      --panel: #172233;
+      --field: #111c2b;
+      --soft: #202d3e;
+      --gold: #d9b867;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--surface);
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .page {
+      width: min(1180px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 28px 0 24px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--blue);
+      font-size: 24px;
+      line-height: 30px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    a,
+    button {
+      min-height: 40px;
+      border: 0;
+      border-radius: 6px;
+      padding: 0 14px;
+      font: 700 13px Arial, Helvetica, sans-serif;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    a {
+      display: inline-grid;
+      place-items: center;
+      background: var(--soft);
+      color: var(--blue);
+    }
+
+    button {
+      background: var(--blue);
+      color: #ffffff;
+    }
+
+    .panel {
+      margin-bottom: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: 0 10px 30px rgba(9, 39, 92, 0.08);
+      padding: 20px;
+    }
+
+    .panel h2 {
+      margin: 0 0 12px;
+      color: var(--blue);
+      font-size: 17px;
+      line-height: 22px;
+    }
+
+    .note {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 18px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 230px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--field);
+      color: var(--ink);
+      padding: 14px;
+      resize: vertical;
+      font: 14px Arial, Helvetica, sans-serif;
+      line-height: 22px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      min-width: 860px;
+      border-collapse: collapse;
+      background: var(--panel);
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--line);
+      padding: 14px 16px;
+      text-align: left;
+      vertical-align: middle;
+      font-size: 14px;
+      line-height: 18px;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    code {
+      color: var(--ink);
+      font: 13px Consolas, "Courier New", monospace;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .copy-small {
+      min-height: 30px;
+      background: var(--soft);
+      color: var(--blue);
+      padding: 0 10px;
+      font-size: 12px;
+    }
+
+    .status {
+      min-height: 18px;
+      color: #23613b;
+      font-size: 12px;
+      line-height: 18px;
+      margin-top: 10px;
+    }
+
+    .footer {
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    @media (max-width: 720px) {
+      .page {
+        width: min(100% - 28px, 720px);
+        padding-top: 18px;
+      }
+
+      .header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="header">
+      <h1>Scripts e Senhas</h1>
+      <div class="actions">
+        <a href="index.html">Voltar ao gerador</a>
+        <button type="button" id="theme-toggle">Modo escuro</button>
+      </div>
+    </header>
+
+    <section class="panel">
+      <h2>Script de Comunicado</h2>
+      <p class="note">Texto padrao para informar contatos sobre a mudanca de e-mail.</p>
+      <textarea id="script-text">Prezados,
+
+Informamos que a instituicao esta passando por uma mudanca nos enderecos de e-mail.
+
+Solicitamos, por gentileza, que atualizem o e-mail de contato em sua agenda para garantir a continuidade da comunicacao conosco.
+
+E-mail atual: ______________________________
+Novo e-mail: ______________________________
+
+Atenciosamente,</textarea>
+      <button type="button" id="copy-script">Copiar script</button>
+      <div class="status" id="status" aria-live="polite"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Contas de E-mail</h2>
+      <p class="note">Por seguranca, senhas reais nao devem ficar publicadas no GitHub Pages. Consulte o cofre de senhas ou o controle interno autorizado.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>E-mail</th>
+              <th>Link</th>
+              <th>Usuario</th>
+              <th>Senha</th>
+              <th>Acao</th>
+            </tr>
+          </thead>
+          <tbody id="accounts"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">Copyright &copy; 2026 kiwors.</footer>
+
+  <script>
+    const themeStorageKey = "santa-casa-theme";
+    const themeToggle = document.getElementById("theme-toggle");
+    const status = document.getElementById("status");
+    const accounts = [
+      ["Agencia Transfusional", "agenciatransfusional@santacasaandradina.org"],
+      ["Manutencao", "manutencao@santacasaandradina.org", "", "", "Ver com o Marcelo"],
+      ["Nir", "nir@santacasaandradina.org"],
+      ["Psicologia", "psicologia@santacasaandradina.org"],
+      ["Recepcao hemodialise", "recepcao.hemodialise@santacasaandradina.org"],
+      ["Recepcao Internacao", "recepcao.internacao@santacasaandradina.org"],
+      ["Recepcao Policlinica", "recepcao.policlinica@santacasaandradina.org"],
+      ["Recepcao Raiox", "recepcao.raiox@santacasaandradina.org"],
+      ["RT Farmacia", "rtfarmacia@santacasaandradina.org"],
+      ["Servico social", "servico.social@santacasaandradina.org"]
+    ];
+
+    function applyTheme(theme) {
+      const isDark = theme === "dark";
+      document.body.classList.toggle("dark", isDark);
+      themeToggle.textContent = isDark ? "Modo claro" : "Modo escuro";
+    }
+
+    function copyText(text, message) {
+      navigator.clipboard.writeText(text);
+      status.textContent = message;
+    }
+
+    function renderAccounts() {
+      const tbody = document.getElementById("accounts");
+      tbody.innerHTML = accounts.map((account, index) => {
+        const passwordNote = account[4] || "Consultar cofre de senhas";
+        return '<tr>' +
+          '<td>' + account[0] + '</td>' +
+          '<td><code>' + account[1] + '</code></td>' +
+          '<td class="muted">-</td>' +
+          '<td class="muted">-</td>' +
+          '<td>' + passwordNote + '</td>' +
+          '<td><button class="copy-small" type="button" data-copy="' + index + '">Copiar e-mail</button></td>' +
+        '</tr>';
+      }).join("");
+
+      document.querySelectorAll("[data-copy]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const account = accounts[Number(button.dataset.copy)];
+          copyText(account[1], "E-mail copiado.");
+        });
+      });
+    }
+
+    applyTheme(localStorage.getItem(themeStorageKey) || "light");
+    themeToggle.addEventListener("click", () => {
+      const nextTheme = document.body.classList.contains("dark") ? "light" : "dark";
+      localStorage.setItem(themeStorageKey, nextTheme);
+      applyTheme(nextTheme);
+    });
+    document.getElementById("copy-script").addEventListener("click", () => {
+      copyText(document.getElementById("script-text").value, "Script copiado.");
+    });
+    renderAccounts();
+  </script>
+</body>
+</html>
