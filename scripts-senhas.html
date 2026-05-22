@@ -285,6 +285,20 @@
       white-space: nowrap;
     }
 
+    .sync-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin: 14px 0;
+    }
+
+    .sync-status {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 18px;
+    }
+
     .status {
       min-height: 18px;
       color: #23613b;
@@ -311,6 +325,10 @@
       }
 
       .quick-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .toolbar {
         grid-template-columns: 1fr;
       }
     }
@@ -362,13 +380,21 @@ E-mail atual: ______________________________
 Novo e-mail: ______________________________
 
 Atenciosamente,</textarea>
-      <button type="button" id="copy-script">Copiar script</button>
+      <div class="sync-bar">
+        <button type="button" id="copy-script">Copiar script</button>
+        <button type="button" id="save-script">Salvar no SharePoint</button>
+      </div>
       <div class="status" id="status" aria-live="polite"></div>
     </section>
 
     <section class="panel">
       <h2>Conferencia de Migracao</h2>
-      <p class="note">Marque os setores ja conferidos. A marcacao fica salva neste navegador para nao perder o controle.</p>
+      <p class="note">Marque os setores ja conferidos. Ao entrar com a conta Microsoft, a marcacao e salva direto no SharePoint.</p>
+      <div class="sync-bar">
+        <button type="button" id="connect-sharepoint">Entrar e sincronizar</button>
+        <button type="button" id="refresh-sharepoint">Atualizar lista</button>
+        <span class="sync-status" id="sync-status">Usando lista local ate conectar ao SharePoint.</span>
+      </div>
       <div class="toolbar">
         <input id="migration-search" type="search" placeholder="Pesquisar por e-mail ou dono">
         <div class="summary" id="migration-summary">0 de 0 concluidos</div>
@@ -392,6 +418,7 @@ Atenciosamente,</textarea>
 
   <footer class="footer">Copyright &copy; 2026 kiwors.</footer>
 
+  <script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
   <script>
     const themeStorageKey = "santa-casa-theme";
     const scriptStorageKey = "santa-casa-script-comunicado-v1";
@@ -479,6 +506,31 @@ Atenciosamente,</textarea>
       { emailPrincipal: "dp@santacasaandradina.com.br", emailNovo: "dp@santacasaandradina.org", dono: "Lidiani" }
     ];
 
+    const graphConfig = {
+      clientId: "9adc7394-4ea7-409b-bbe7-57c891f7a575",
+      tenantId: "251017e3-b3a8-40f0-b6fe-57b159bcc5d8",
+      host: "santacasaandradina.sharepoint.com",
+      sitePath: "/sites/IRMANDADEDASANTACASADEANDRADINA-TECNOLOGIADAINFORMAO",
+      migrationListName: "Controle Migracao Emails",
+      scriptListName: "Script Migracao Email",
+      scopes: ["User.Read", "Sites.ReadWrite.All"]
+    };
+    const syncStatus = document.getElementById("sync-status");
+    const migrationSearch = document.getElementById("migration-search");
+    let migrationData = migrationRows.map((row, index) => ({ ...row, id: "", source: "local", done: false, localIndex: index }));
+    let graphState = { account: null, siteId: "", migrationListId: "", scriptListId: "", scriptItemId: "" };
+    const msalApp = window.msal ? new msal.PublicClientApplication({
+      auth: {
+        clientId: graphConfig.clientId,
+        authority: "https://login.microsoftonline.com/" + graphConfig.tenantId,
+        redirectUri: location.origin + location.pathname
+      },
+      cache: {
+        cacheLocation: "localStorage",
+        storeAuthStateInCookie: false
+      }
+    }) : null;
+
     function applyTheme(theme) {
       const isDark = theme === "dark";
       document.body.classList.toggle("dark", isDark);
@@ -498,49 +550,161 @@ Atenciosamente,</textarea>
         .replace(/"/g, "&quot;");
     }
 
-    function migrationKey(row) {
-      return row.emailNovo || row.emailPrincipal;
+    function normalizeDone(value) {
+      return String(value || "").trim().toLowerCase() === "sim";
     }
 
-    function loadChecked() {
+    function doneValue(done) {
+      return done ? "sim" : "Não";
+    }
+
+    function fieldValue(fields, names) {
+      const keys = Object.keys(fields || {});
+      for (const name of names) {
+        if (fields[name] !== undefined) return fields[name];
+        const match = keys.find((key) => key.toLowerCase() === name.toLowerCase());
+        if (match) return fields[match];
+      }
+      return "";
+    }
+
+    async function getToken() {
+      if (!msalApp) throw new Error("Biblioteca Microsoft nao carregou.");
+      const accounts = msalApp.getAllAccounts();
+      graphState.account = accounts[0] || null;
+      if (!graphState.account) {
+        const login = await msalApp.loginPopup({ scopes: graphConfig.scopes, prompt: "select_account" });
+        graphState.account = login.account;
+      }
       try {
-        return JSON.parse(localStorage.getItem(migrationStorageKey) || "{}");
+        const result = await msalApp.acquireTokenSilent({ scopes: graphConfig.scopes, account: graphState.account });
+        return result.accessToken;
       } catch {
-        return {};
+        const result = await msalApp.acquireTokenPopup({ scopes: graphConfig.scopes, account: graphState.account });
+        graphState.account = result.account;
+        return result.accessToken;
       }
     }
 
-    function saveChecked(checked) {
-      localStorage.setItem(migrationStorageKey, JSON.stringify(checked));
+    async function graph(path, options = {}) {
+      const token = await getToken();
+      const response = await fetch("https://graph.microsoft.com/v1.0" + path, {
+        ...options,
+        headers: {
+          Authorization: "Bearer " + token,
+          "Content-Type": "application/json",
+          ...(options.headers || {})
+        }
+      });
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || ("Erro Microsoft Graph: " + response.status));
+      }
+      if (response.status === 204) return null;
+      return response.json();
+    }
+
+    async function listByName(siteId, displayName) {
+      const filter = encodeURIComponent("displayName eq '" + displayName.replace(/'/g, "''") + "'");
+      const data = await graph("/sites/" + siteId + "/lists?$filter=" + filter);
+      const list = (data.value || [])[0];
+      if (!list) throw new Error("Lista nao encontrada: " + displayName);
+      return list.id;
+    }
+
+    async function loadSharePointData() {
+      syncStatus.textContent = "Conectando ao SharePoint...";
+      const site = await graph("/sites/" + graphConfig.host + ":" + graphConfig.sitePath);
+      graphState.siteId = site.id;
+      graphState.migrationListId = await listByName(site.id, graphConfig.migrationListName);
+      graphState.scriptListId = await listByName(site.id, graphConfig.scriptListName);
+
+      const items = await graph("/sites/" + site.id + "/lists/" + graphState.migrationListId + "/items?$expand=fields&$top=999");
+      migrationData = (items.value || []).map((item) => {
+        const fields = item.fields || {};
+        return {
+          id: item.id,
+          source: "sharepoint",
+          emailPrincipal: fieldValue(fields, ["EmailPrincipal", "Email Principal", "Title"]),
+          emailNovo: fieldValue(fields, ["EmailNovo", "Email Novo"]),
+          dono: fieldValue(fields, ["Dono"]),
+          done: normalizeDone(fieldValue(fields, ["Concluido", "Concluído"]))
+        };
+      });
+
+      await loadSharePointScript();
+      syncStatus.textContent = "Conectado ao SharePoint. Alteracoes serao salvas online.";
+      renderMigration();
+    }
+
+    async function loadSharePointScript() {
+      const items = await graph("/sites/" + graphState.siteId + "/lists/" + graphState.scriptListId + "/items?$expand=fields&$top=20");
+      const item = (items.value || []).find((entry) => String(entry.fields?.Title || "").toLowerCase() === "script_migracao") || (items.value || [])[0];
+      if (!item) return;
+      graphState.scriptItemId = item.id;
+      const text = fieldValue(item.fields, ["TextoScript", "Texto Script"]);
+      if (text) {
+        scriptText.value = text;
+        localStorage.setItem(scriptStorageKey, text);
+      }
+    }
+
+    async function saveSharePointScript() {
+      if (!graphState.scriptListId || !graphState.scriptItemId) {
+        await loadSharePointData();
+      }
+      await graph("/sites/" + graphState.siteId + "/lists/" + graphState.scriptListId + "/items/" + graphState.scriptItemId + "/fields", {
+        method: "PATCH",
+        body: JSON.stringify({ TextoScript: scriptText.value })
+      });
+      status.textContent = "Script salvo no SharePoint.";
+    }
+
+    async function toggleSharePointDone(row, checked) {
+      await graph("/sites/" + graphState.siteId + "/lists/" + graphState.migrationListId + "/items/" + row.id + "/fields", {
+        method: "PATCH",
+        body: JSON.stringify({ Concluido: doneValue(checked) })
+      });
+      row.done = checked;
+      syncStatus.textContent = "Conferencia salva no SharePoint.";
+      renderMigration();
     }
 
     function renderMigration() {
-      const checked = loadChecked();
-      const query = document.getElementById("migration-search").value.trim().toLowerCase();
-      const rows = migrationRows.filter((row) => {
+      const query = migrationSearch.value.trim().toLowerCase();
+      const rows = migrationData.filter((row) => {
         const text = (row.emailPrincipal + " " + row.emailNovo + " " + row.dono).toLowerCase();
         return !query || text.includes(query);
       });
-      const doneTotal = migrationRows.filter((row) => checked[migrationKey(row)]).length;
-      document.getElementById("migration-summary").textContent = doneTotal + " de " + migrationRows.length + " concluidos";
+      const doneTotal = migrationData.filter((row) => row.done).length;
+      document.getElementById("migration-summary").textContent = doneTotal + " de " + migrationData.length + " concluidos";
 
       const tbody = document.getElementById("migration-list");
       tbody.innerHTML = rows.map((row, index) => {
-        const key = migrationKey(row);
         return '<tr>' +
-          '<td class="check-cell"><input class="done-check" type="checkbox" data-key="' + escapeHtml(key) + '"' + (checked[key] ? ' checked' : '') + '></td>' +
+          '<td class="check-cell"><input class="done-check" type="checkbox" data-index="' + index + '"' + (row.done ? ' checked' : '') + '></td>' +
           '<td><code>' + escapeHtml(row.emailPrincipal || "-") + '</code></td>' +
           '<td><code>' + escapeHtml(row.emailNovo || "-") + '</code></td>' +
           '<td>' + escapeHtml(row.dono || "-") + '</td>' +
         '</tr>';
       }).join("");
 
-      document.querySelectorAll("[data-key]").forEach((checkbox) => {
-        checkbox.addEventListener("change", () => {
-          const updated = loadChecked();
-          updated[checkbox.dataset.key] = checkbox.checked;
-          saveChecked(updated);
-          renderMigration();
+      document.querySelectorAll("[data-index]").forEach((checkbox) => {
+        checkbox.addEventListener("change", async () => {
+          const row = rows[Number(checkbox.dataset.index)];
+          if (row.source === "sharepoint") {
+            checkbox.disabled = true;
+            try {
+              await toggleSharePointDone(row, checkbox.checked);
+            } catch (error) {
+              checkbox.checked = !checkbox.checked;
+              syncStatus.textContent = "Nao consegui salvar no SharePoint. Tente sincronizar novamente.";
+              checkbox.disabled = false;
+            }
+          } else {
+            row.done = checkbox.checked;
+            renderMigration();
+          }
         });
       });
 
@@ -564,12 +728,33 @@ Atenciosamente,</textarea>
     document.getElementById("copy-script").addEventListener("click", () => {
       copyText(scriptText.value, "Script copiado.");
     });
+    document.getElementById("save-script").addEventListener("click", async () => {
+      try {
+        await saveSharePointScript();
+      } catch {
+        status.textContent = "Nao consegui salvar no SharePoint. Clique em Entrar e sincronizar.";
+      }
+    });
+    document.getElementById("connect-sharepoint").addEventListener("click", async () => {
+      try {
+        await loadSharePointData();
+      } catch (error) {
+        syncStatus.textContent = "Nao consegui conectar ao SharePoint. Confira login e permissoes.";
+      }
+    });
+    document.getElementById("refresh-sharepoint").addEventListener("click", async () => {
+      try {
+        await loadSharePointData();
+      } catch {
+        syncStatus.textContent = "Nao consegui atualizar a lista.";
+      }
+    });
     scriptText.value = localStorage.getItem(scriptStorageKey) || scriptText.value;
     scriptText.addEventListener("input", () => {
       localStorage.setItem(scriptStorageKey, scriptText.value);
-      status.textContent = "Script salvo neste navegador.";
+      status.textContent = "Script salvo neste navegador. Use Salvar no SharePoint para publicar.";
     });
-    document.getElementById("migration-search").addEventListener("input", renderMigration);
+    migrationSearch.addEventListener("input", renderMigration);
     document.querySelector(".table-wrap").addEventListener("scroll", (event) => {
       document.getElementById("top-scroll").scrollLeft = event.target.scrollLeft;
     });
