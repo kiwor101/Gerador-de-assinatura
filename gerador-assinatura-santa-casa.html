@@ -403,7 +403,7 @@
       <h1>Gerador de Assinatura</h1>
       <p class="subtitle">Preencha os campos e copie a assinatura pronta para o usu&aacute;rio.</p>
       <button class="theme-toggle" type="button" id="theme-toggle">Modo escuro</button>
-      <a class="nav-button" href="scripts-senhas.html">Scripts e conferencia</a>
+      <a class="nav-button" id="scripts-link" href="scripts-senhas.html">Scripts SharePoint</a>
 
       <div class="field">
         <label for="name">Nome completo</label>
@@ -526,6 +526,7 @@
     const fixedAddress = "Av. Guanabara, 730 - Centro, Andradina - SP, 16901-901";
     const fixedEmailDomain = "@santacasaandradina.org";
     const publicAssetBaseUrl = "https://kiwor101.github.io/Gerador-de-assinatura/";
+    const scriptsSharePointUrl = "";
     const themeStorageKey = "santa-casa-theme";
     const fields = ["name", "role", "department", "extension", "email", "teams", "layout", "name-color", "text-color", "label-color", "bar-color"];
     const savedLogoStorageKey = "santa-casa-uploaded-logos";
@@ -537,6 +538,7 @@
       { src: "assets/logos/original-2-logo-santa-casa-assinatura.png" },
       { src: "assets/logos/original-3-logo-santa-casa.png" },
       { src: "assets/logos/opcao-1-logo-santa-casa.png" },
+      { src: "assets/logos/opcao-2-logo-santa-casa.png" },
       { src: "assets/logos/opcao-3-logo-santa-casa.png" },
       { src: "assets/logos/opcao-4-logo-santa-casa.png" }
     ];
@@ -809,12 +811,6 @@
       });
     }
 
-    function drawText(ctx, text, x, y, options) {
-      ctx.fillStyle = options.color;
-      ctx.font = options.font;
-      ctx.fillText(text, x, y);
-    }
-
     function fitText(ctx, text, x, y, maxWidth, options) {
       let size = options.size;
       do {
@@ -847,46 +843,84 @@
     }
 
     async function imageBlob() {
-      render();
+      const layout = currentLayout();
+      const scale = 2;
+      const width = layout.width;
+      const height = 150;
+      const canvas = document.createElement("canvas");
+      canvas.width = width * scale;
+      canvas.height = height * scale;
+      const ctx = canvas.getContext("2d");
+      ctx.scale(scale, scale);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, width, height);
 
-      const source = preview.firstElementChild.cloneNode(true);
-      const logo = source.querySelector("img");
-      if (logo) logo.src = await imageDataUrl(publicLogoSource(logoSource));
+      const nameColor = color("name-color", "#09275c");
+      const textColor = color("text-color", "#2f3b4a");
+      const labelColor = color("label-color", "#b98a24");
+      const barColor = color("bar-color", "#b98a24");
+      const leftPadding = 0;
+      const topPadding = 8;
+      const contentBottom = 111;
+      const dividerX = layout.logoCell;
+      const textX = dividerX + layout.gap;
+      const maxTextWidth = width - textX;
 
-      const rect = preview.firstElementChild.getBoundingClientRect();
-      const width = Math.ceil(rect.width);
-      const height = Math.ceil(rect.height);
-      const scale = 1;
-      const wrapper = document.createElement("div");
-      wrapper.setAttribute("xmlns", "http://www.w3.org/1999/xhtml");
-      wrapper.style.width = width + "px";
-      wrapper.style.minHeight = height + "px";
-      wrapper.style.background = "#ffffff";
-      wrapper.appendChild(source);
-
-      const serialized = new XMLSerializer().serializeToString(wrapper);
-      const svg =
-        '<svg xmlns="http://www.w3.org/2000/svg" width="' + width + '" height="' + height + '">' +
-          '<foreignObject width="100%" height="100%">' +
-            serialized +
-          '</foreignObject>' +
-        '</svg>';
-      const svgUrl = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }));
+      ctx.fillStyle = barColor;
+      ctx.fillRect(leftPadding, contentBottom, width, 2);
+      ctx.fillRect(dividerX, topPadding, 1, contentBottom - topPadding - 8);
 
       try {
-        const image = await loadImage(svgUrl);
-        const canvas = document.createElement("canvas");
-        canvas.width = width * scale;
-        canvas.height = height * scale;
-        const ctx = canvas.getContext("2d");
-        ctx.scale(scale, scale);
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0, 0, width, height);
-        ctx.drawImage(image, 0, 0, width, height);
-        return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
-      } finally {
-        URL.revokeObjectURL(svgUrl);
+        const logoDataUrl = await imageDataUrl(publicLogoSource(logoSource));
+        const logoImage = await loadImage(logoDataUrl);
+        drawContainedImage(ctx, logoImage, 0, 13, layout.logoCell - layout.gap, 75);
+      } catch {
+        ctx.fillStyle = "#f3f5f7";
+        ctx.fillRect(0, 13, layout.logoCell - layout.gap, 75);
+        fitText(ctx, "Logo indisponivel", 14, 55, layout.logoCell - 28, {
+          color: "#7a828c",
+          size: 12,
+          minSize: 9
+        });
       }
+
+      fitText(ctx, value("name"), textX, 30, maxTextWidth, {
+        color: nameColor,
+        size: layout.nameSize,
+        minSize: 12,
+        weight: "bold"
+      });
+      fitText(ctx, roleLine(), textX, 52, maxTextWidth, {
+        color: "#5b6470",
+        size: layout.roleSize,
+        minSize: 10
+      });
+
+      let rowY = 73;
+      contactRows().forEach((row) => {
+        if (!row.value) return;
+        const label = (row.htmlLabel || row.label).replace("Endere&ccedil;o:", "Endereco:");
+        const labelText = label + " ";
+        ctx.font = "bold " + layout.textSize + "px Arial";
+        ctx.fillStyle = labelColor;
+        ctx.fillText(labelText, textX, rowY);
+        const labelWidth = ctx.measureText(labelText).width;
+        fitText(ctx, row.value + (row.muted || ""), textX + labelWidth, rowY, maxTextWidth - labelWidth, {
+          color: textColor,
+          size: layout.textSize,
+          minSize: 9
+        });
+        rowY += layout.textSize + 7;
+      });
+
+      ctx.fillStyle = "#7a828c";
+      ctx.font = layout.footerSize + "px Arial";
+      ctx.fillText("Irmandade Santa Casa de Andradina | Desde 1940", 0, 127);
+      ctx.fillStyle = "#9aa1aa";
+      ctx.font = "10px Arial";
+      ctx.fillText("Esta mensagem pode conter informacoes confidenciais destinadas exclusivamente ao destinatario.", 0, 144);
+
+      return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
     }
 
     async function copyImage() {
@@ -935,6 +969,13 @@
         return;
       }
       await copyText(html, "HTML copiado.");
+    }
+
+    const scriptsLink = document.getElementById("scripts-link");
+    if (scriptsSharePointUrl) {
+      scriptsLink.href = scriptsSharePointUrl;
+      scriptsLink.target = "_blank";
+      scriptsLink.rel = "noopener";
     }
 
     fields.forEach((id) => document.getElementById(id).addEventListener("input", render));
