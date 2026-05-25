@@ -94,6 +94,11 @@
       color: #ffffff;
     }
 
+    button.secondary {
+      background: var(--soft);
+      color: var(--blue);
+    }
+
     .panel {
       margin-bottom: 18px;
       border: 1px solid var(--line);
@@ -311,6 +316,13 @@
       margin: 14px 0;
     }
 
+    .auth-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
     .sync-status {
       color: var(--muted);
       font-size: 13px;
@@ -365,7 +377,10 @@
     <section class="panel" id="auth-panel">
       <h2>Acesso Microsoft</h2>
       <p class="note">Entre com sua conta Microsoft para carregar o script e a conferencia salvos no SharePoint.</p>
-      <button type="button" id="login-sharepoint">Entrar</button>
+      <div class="auth-actions">
+        <button type="button" id="login-sharepoint">Entrar</button>
+        <button class="secondary" type="button" id="logout-sharepoint">Sair / trocar conta</button>
+      </div>
       <div class="status" id="auth-status" aria-live="polite"></div>
     </section>
 
@@ -395,6 +410,7 @@ Atenciosamente,</textarea>
       <p class="note">Marque os setores ja conferidos. Cada alteracao e salva automaticamente no SharePoint.</p>
       <div class="sync-bar">
         <span class="sync-status" id="sync-status">Conectado ao SharePoint.</span>
+        <button class="secondary" type="button" id="logout-sharepoint-active">Sair / trocar conta</button>
       </div>
       <div class="toolbar">
         <input id="migration-search" type="search" placeholder="Pesquisar por e-mail ou dono">
@@ -636,6 +652,54 @@ Atenciosamente,</textarea>
       });
       graphState.migrationColumns = await loadColumnMap(graphState.siteId, graphState.migrationListId);
       graphState.passwordColumnKey = findColumnKey(graphState.migrationColumns, ["Senha"]);
+    }
+
+    function clearMsalCache() {
+      [localStorage, sessionStorage].forEach((storage) => {
+        Object.keys(storage).forEach((key) => {
+          const lowerKey = key.toLowerCase();
+          if (lowerKey.includes(graphConfig.clientId.toLowerCase()) || lowerKey.startsWith("msal.")) {
+            storage.removeItem(key);
+          }
+        });
+      });
+    }
+
+    function resetSharePointState(message) {
+      graphState.account = null;
+      graphState.siteId = "";
+      graphState.migrationListId = "";
+      graphState.scriptListId = "";
+      graphState.scriptItemId = "";
+      graphState.migrationColumns = {};
+      graphState.scriptColumns = {};
+      graphState.passwordColumnKey = "";
+      migrationData = [];
+      document.getElementById("protected-content").classList.add("hidden");
+      document.getElementById("auth-panel").classList.remove("hidden");
+      authStatus.textContent = message || "";
+      syncStatus.textContent = "Conectado ao SharePoint.";
+      renderMigration();
+    }
+
+    async function signOutSharePoint() {
+      authStatus.textContent = "Saindo da conta Microsoft...";
+      if (msalApp) {
+        const account = graphState.account || msalApp.getAllAccounts()[0];
+        if (account) {
+          try {
+            await msalApp.logoutPopup({
+              account,
+              mainWindowRedirectUri: location.href,
+              postLogoutRedirectUri: location.href
+            });
+          } catch {
+            clearMsalCache();
+          }
+        }
+      }
+      clearMsalCache();
+      resetSharePointState("Conta removida deste navegador. Clique em Entrar e escolha a conta correta.");
     }
 
     async function getToken() {
@@ -888,11 +952,16 @@ Atenciosamente,</textarea>
     });
     document.getElementById("login-sharepoint").addEventListener("click", async () => {
       try {
+        clearMsalCache();
+        graphState.account = null;
+        authStatus.textContent = "Escolha a conta Microsoft autorizada.";
         await loadSharePointData();
       } catch (error) {
-        authStatus.textContent = "Nao consegui conectar ao SharePoint. Confira login e permissoes.";
+        authStatus.textContent = "Nao consegui conectar ao SharePoint. Use Sair / trocar conta e entre com uma conta autorizada.";
       }
     });
+    document.getElementById("logout-sharepoint").addEventListener("click", signOutSharePoint);
+    document.getElementById("logout-sharepoint-active").addEventListener("click", signOutSharePoint);
     document.getElementById("add-migration").addEventListener("click", async () => {
       try {
         await addSharePointMigration();

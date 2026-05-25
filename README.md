@@ -110,6 +110,8 @@ A assinatura, a pre-visualizacao e a PNG gerada continuam com fundo branco para 
 
 O botao `Scripts e conferencia` abre uma pagina protegida por login Microsoft.
 
+Use `Sair / trocar conta` quando o navegador entrar com uma conta sem permissao. Isso limpa a conta salva para permitir escolher outro usuario no proximo login.
+
 Depois de entrar, a pagina carrega os dados da lista `Controle Migracao Emails` do SharePoint em uma tabela limpa dentro do proprio site.
 
 Essa tabela tambem pode exibir a coluna `Senha`. A senha fica oculta por padrao, com botoes para revelar, ocultar novamente e copiar. O campo so aparece dentro da area protegida por login Microsoft.
