@@ -179,17 +179,22 @@
 
     th:nth-child(2),
     td:nth-child(2) {
-      width: 41%;
+      width: 31%;
     }
 
     th:nth-child(3),
     td:nth-child(3) {
-      width: 34%;
+      width: 28%;
     }
 
     th:nth-child(4),
     td:nth-child(4) {
-      width: 25%;
+      width: 18%;
+    }
+
+    th:nth-child(5),
+    td:nth-child(5) {
+      width: 23%;
     }
 
     td code {
@@ -227,6 +232,29 @@
       cursor: pointer;
     }
 
+    .password-cell {
+      display: grid;
+      gap: 8px;
+    }
+
+    .password-value {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      font: 13px Consolas, "Courier New", monospace;
+    }
+
+    .password-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .password-actions button {
+      min-height: 30px;
+      padding: 0 10px;
+      font-size: 12px;
+    }
+
     .toolbar {
       display: grid;
       grid-template-columns: minmax(240px, 1fr) auto;
@@ -246,7 +274,7 @@
 
     .add-form {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+      grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
       gap: 10px;
       margin: 12px 0;
     }
@@ -376,6 +404,7 @@ Atenciosamente,</textarea>
         <input id="add-email-principal" type="email" placeholder="E-mail principal">
         <input id="add-email-novo" type="email" placeholder="E-mail novo">
         <input id="add-dono" type="text" placeholder="Dono">
+        <input id="add-senha" type="text" placeholder="Senha">
         <button type="button" id="add-migration">Adicionar</button>
       </div>
       <div class="top-scroll" id="top-scroll"><div class="top-scroll-inner" id="top-scroll-inner"></div></div>
@@ -387,6 +416,7 @@ Atenciosamente,</textarea>
               <th>E-mail principal</th>
               <th>E-mail novo</th>
               <th>Dono</th>
+              <th>Senha</th>
             </tr>
           </thead>
           <tbody id="migration-list"></tbody>
@@ -508,7 +538,8 @@ Atenciosamente,</textarea>
       scriptListId: "",
       scriptItemId: "",
       migrationColumns: {},
-      scriptColumns: {}
+      scriptColumns: {},
+      passwordColumnKey: ""
     };
     const msalApp = window.msal ? new msal.PublicClientApplication({
       auth: {
@@ -546,7 +577,7 @@ Atenciosamente,</textarea>
     }
 
     function doneValue(done) {
-      return done ? "sim" : "Não";
+      return done ? "sim" : "N\u00e3o";
     }
 
     function normalizeColumnName(name) {
@@ -578,6 +609,33 @@ Atenciosamente,</textarea>
         patch[key] = value;
       });
       return patch;
+    }
+
+    function findColumnKey(columnMap, names) {
+      for (const name of names) {
+        const key = columnMap[name] || columnMap[normalizeColumnName(name)];
+        if (key) return key;
+      }
+      return "";
+    }
+
+    async function ensurePasswordColumn() {
+      graphState.passwordColumnKey = findColumnKey(graphState.migrationColumns, [
+        "Senha",
+        "SENHA EMAIL PRINCIPAL",
+        "SenhaEmailPrincipal"
+      ]);
+      if (graphState.passwordColumnKey) return;
+
+      await graph("/sites/" + graphState.siteId + "/lists/" + graphState.migrationListId + "/columns", {
+        method: "POST",
+        body: JSON.stringify({
+          name: "Senha",
+          text: {}
+        })
+      });
+      graphState.migrationColumns = await loadColumnMap(graphState.siteId, graphState.migrationListId);
+      graphState.passwordColumnKey = findColumnKey(graphState.migrationColumns, ["Senha"]);
     }
 
     async function getToken() {
@@ -646,6 +704,7 @@ Atenciosamente,</textarea>
       graphState.scriptListId = await listByName(site.id, graphConfig.scriptListName);
       graphState.migrationColumns = await loadColumnMap(site.id, graphState.migrationListId);
       graphState.scriptColumns = await loadColumnMap(site.id, graphState.scriptListId);
+      await ensurePasswordColumn();
 
       const items = await graph("/sites/" + site.id + "/lists/" + graphState.migrationListId + "/items?$expand=fields&$top=999");
       migrationData = (items.value || []).map((item) => {
@@ -656,7 +715,8 @@ Atenciosamente,</textarea>
           emailPrincipal: fieldValue(fields, ["EmailPrincipal", "Email Principal", "Title"], graphState.migrationColumns),
           emailNovo: fieldValue(fields, ["EmailNovo", "Email Novo"], graphState.migrationColumns),
           dono: fieldValue(fields, ["Dono"], graphState.migrationColumns),
-          done: normalizeDone(fieldValue(fields, ["Concluido", "Concluído"], graphState.migrationColumns))
+          senha: fieldValue(fields, ["Senha", "SENHA EMAIL PRINCIPAL", "SenhaEmailPrincipal"], graphState.migrationColumns),
+          done: normalizeDone(fieldValue(fields, ["Concluido"], graphState.migrationColumns))
         };
       });
 
@@ -705,6 +765,7 @@ Atenciosamente,</textarea>
       const emailPrincipal = document.getElementById("add-email-principal").value.trim();
       const emailNovo = document.getElementById("add-email-novo").value.trim();
       const dono = document.getElementById("add-dono").value.trim();
+      const senha = document.getElementById("add-senha").value.trim();
       if (!emailPrincipal && !emailNovo) {
         syncStatus.textContent = "Preencha pelo menos um e-mail para adicionar.";
         return;
@@ -716,8 +777,9 @@ Atenciosamente,</textarea>
         ["EmailPrincipal", emailPrincipal],
         ["EmailNovo", emailNovo],
         ["Dono", dono],
-        ["Concluido", "Não"]
+        ["Concluido", "N\u00e3o"]
       ]);
+      if (graphState.passwordColumnKey) fields[graphState.passwordColumnKey] = senha;
       if (!fields.Title) fields.Title = emailPrincipal || emailNovo;
       await graph("/sites/" + graphState.siteId + "/lists/" + graphState.migrationListId + "/items", {
         method: "POST",
@@ -726,8 +788,26 @@ Atenciosamente,</textarea>
       document.getElementById("add-email-principal").value = "";
       document.getElementById("add-email-novo").value = "";
       document.getElementById("add-dono").value = "";
+      document.getElementById("add-senha").value = "";
       syncStatus.textContent = "Item adicionado no SharePoint.";
       await loadSharePointData();
+    }
+
+    function maskedPassword() {
+      return "\u2022".repeat(8);
+    }
+
+    function passwordCellHtml(row, index) {
+      if (!row.senha) {
+        return '<span class="muted">-</span>';
+      }
+      return '<div class="password-cell">' +
+        '<span class="password-value" data-password-value="' + index + '" data-hidden="true" data-password="' + escapeHtml(row.senha) + '">' + maskedPassword() + '</span>' +
+        '<span class="password-actions">' +
+          '<button type="button" class="reveal-password" data-password-index="' + index + '">Revelar</button>' +
+          '<button type="button" class="copy-password" data-copy-password-index="' + index + '">Copiar</button>' +
+        '</span>' +
+      '</div>';
     }
 
     function renderMigration() {
@@ -746,6 +826,7 @@ Atenciosamente,</textarea>
           '<td><code>' + escapeHtml(row.emailPrincipal || "-") + '</code></td>' +
           '<td><code>' + escapeHtml(row.emailNovo || "-") + '</code></td>' +
           '<td>' + escapeHtml(row.dono || "-") + '</td>' +
+          '<td>' + passwordCellHtml(row, index) + '</td>' +
         '</tr>';
       }).join("");
 
@@ -762,6 +843,26 @@ Atenciosamente,</textarea>
               checkbox.disabled = false;
             }
           }
+        });
+      });
+
+      document.querySelectorAll("[data-password-index]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const index = button.dataset.passwordIndex;
+          const valueElement = document.querySelector('[data-password-value="' + index + '"]');
+          if (!valueElement) return;
+          const isHidden = valueElement.dataset.hidden === "true";
+          valueElement.textContent = isHidden ? valueElement.dataset.password : maskedPassword();
+          valueElement.dataset.hidden = isHidden ? "false" : "true";
+          button.textContent = isHidden ? "Ocultar" : "Revelar";
+        });
+      });
+
+      document.querySelectorAll("[data-copy-password-index]").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const row = rows[Number(button.dataset.copyPasswordIndex)];
+          if (!row || !row.senha) return;
+          await copyText(row.senha, "Senha copiada.");
         });
       });
 
