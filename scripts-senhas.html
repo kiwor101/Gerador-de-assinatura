@@ -407,7 +407,7 @@ Atenciosamente,</textarea>
 
     <section class="panel">
       <h2>Conferencia de Migracao</h2>
-      <p class="note">Marque os setores ja conferidos. Cada alteracao e salva automaticamente no SharePoint.</p>
+      <p class="note">Marque os setores ja conferidos. Cada alteracao e salva automaticamente no SharePoint. As senhas sao consultadas pelo e-mail principal dentro do proprio site.</p>
       <div class="sync-bar">
         <span class="sync-status" id="sync-status">Conectado ao SharePoint.</span>
         <button class="secondary" type="button" id="logout-sharepoint-active">Sair / trocar conta</button>
@@ -420,7 +420,6 @@ Atenciosamente,</textarea>
         <input id="add-email-principal" type="email" placeholder="E-mail principal">
         <input id="add-email-novo" type="email" placeholder="E-mail novo">
         <input id="add-dono" type="text" placeholder="Dono">
-        <input id="add-senha" type="text" placeholder="Senha">
         <button type="button" id="add-migration">Adicionar</button>
       </div>
       <div class="top-scroll" id="top-scroll"><div class="top-scroll-inner" id="top-scroll-inner"></div></div>
@@ -543,6 +542,68 @@ Atenciosamente,</textarea>
       scriptListName: "Script Migracao Email",
       scopes: ["User.Read", "Sites.ReadWrite.All"]
     };
+    const fixedPasswords = {
+      "advogada@santacasaandradina.com.br": "Direito2402%$",
+      "agenciatransfusional@santacasaandradina.com.br": "AGfusional201900",
+      "agendamento@santacasaandradina.com.br": "S@ntacasa2026",
+      "almoxarifado@santacasaandradina.com.br": "#Almox2025%$",
+      "almoxarifadohemodialise@santacasaandradina.com.br": "S@ntacasa2026",
+      "altaresponsavel@santacasaandradina.com.br": "Altaresp23%",
+      "assistente.diretoriaclinica@santacasaandradina.com.br": "Santacasa26%",
+      "assistente.juridico@santacasaandradina.com.br": "_ZDhHz4'X98bKX-",
+      "auditoria@santacasaandradina.com.br": "Audita26%$",
+      "caixa@santacasaandradina.com.br": "Caixa%2023%$",
+      "ccih@santacasaandradina.com.br": "@Tlascalla2301",
+      "cihumanizacao@santacasaandradina.com.br": "Humanizacao2020*",
+      "clinicamedica@santacasaandradina.com.br": "S@ntacasa2026",
+      "comunicacao@santacasaandradina.com.br": "ComunicacaoVB226%",
+      "contas.medicas@santacasaandradina.com.br": "Contasmedicas730%",
+      "contasapagar@santacasaandradina.com.br": "Santacasa26%",
+      "contato@santacasaandradina.com.br": "Contato2021%",
+      "conveniosaudeindigena@santacasaandradina.com.br": "Siconv2024sta%$",
+      "coordenacao.apartamento@santacasaandradina.com.br": "Santacasa25%",
+      "coordenacao.pa@santacasaandradina.com.br": "Coodpoli2024%$",
+      "coordenacao.saudeindigena@santacasaandradina.com.br": "Cordenaindio2024%$#",
+      "daiane.compras@santacasaandradina.com.br": "Daiane2022%$",
+      "departamento.juridico@santacasaandradina.com.br": "S@ntacasa2026",
+      "doacao@santacasaandradina.com.br": "S@ntacasa2026",
+      "ed.continuada@santacasaandradina.com.br": "Educa2022%",
+      "enfermeirarthemodinamica@santacasaandradina.com.br": "Santacasa26%$",
+      "faturamento@santacasaandradina.com.br": "Fat%987ura$",
+      "financeiro.filiais@santacasaandradina.com.br": "Finan%2025$#",
+      "financeiro@santacasaandradina.com.br": "Santacasa2025%",
+      "financeiroconsulta@santacasaandradina.com.br": "Financeiro730%$",
+      "fisioterapia@santacasaandradina.com.br": "fisio2018intensiva",
+      "gerencia.administrativa@santacasaandradina.com.br": "S@ntacasa2026",
+      "gerencia.enfermagem@santacasaandradina.com.br": "@Gerenciaenf2024",
+      "gerencia.faturamento@santacasaandradina.com.br": "Santacasa25%",
+      "gerencia.financeiro@santacasaandradina.com.br": "gerenciaFinan21%%",
+      "gerencia.rh@santacasaandradina.com.br": "GerenciaRH2022%",
+      "gerencia.tecnica@santacasaandradina.com.br": "Gerencia.tec2024%$",
+      "hemocori@santacasaandradina.com.br": "Santacasa2025%",
+      "hemodialise@santacasaandradina.com.br": "S@ntacasa2026",
+      "higiene@santacasaandradina.com.br": "Higienesantacasa22%",
+      "indigenalitoralsul@santacasaandradina.com.br": "tecnologiaTI26@",
+      "intervencao.medicos@santacasaandradina.com.br": "S@ntacasa2026",
+      "manutencao@santacasaandradina.com.br": "Senhaatt730%",
+      "marcos@santacasaandradina.com.br": "Santcasa25%$",
+      "maternidade.enfermagem@santacasaandradina.com.br": "Sandra2025%$25",
+      "nucleo.regulacao@santacasaandradina.com.br": "N2018regulacao",
+      "nutricao@santacasaandradina.com.br": "Nutri2420%",
+      "ouvidoria@santacasaandradina.com.br": "Ouvidoria.santacasa23%",
+      "patrimonio@santacasaandradina.com.br": "Patrimonio2025%@",
+      "psicologia@santacasaandradina.com.br": "Psicologia123@",
+      "raiox@santacasaandradina.com.br": "Imagem2025@",
+      "recepcao.adm@santacasaandradina.com.br": "tiControle2023%$",
+      "recepcao.hemodialise@santacasaandradina.com.br": "Recepcaohemo2025%$",
+      "recepcao.pa@santacasaandradina.com.br": "Polipa510%",
+      "recepcaorx@santacasaandradina.com.br": "Rxadm2021%",
+      "sesmt@santacasaandradina.com.br": "Sesmt2026%",
+      "siconv.convenios@santacasaandradina.com.br": "Siconv2024sta%$",
+      "supervisao.lavanderia@santacasaandradina.com.br": "Supervisaolavanderia2025%",
+      "supervisaolab@santacasaandradina.com.br": "superlab2018",
+      "vigilancia@santacasaandradina.com.br": "Santacasa23%$"
+    };
     const syncStatus = document.getElementById("sync-status");
     const migrationSearch = document.getElementById("migration-search");
     let migrationData = [];
@@ -554,8 +615,7 @@ Atenciosamente,</textarea>
       scriptListId: "",
       scriptItemId: "",
       migrationColumns: {},
-      scriptColumns: {},
-      passwordColumnKey: ""
+      scriptColumns: {}
     };
     const msalApp = window.msal ? new msal.PublicClientApplication({
       auth: {
@@ -635,28 +695,12 @@ Atenciosamente,</textarea>
       return "";
     }
 
-    async function ensurePasswordColumn() {
-      graphState.passwordColumnKey = findColumnKey(graphState.migrationColumns, [
-        "Senha",
-        "SENHA EMAIL PRINCIPAL",
-        "SenhaEmailPrincipal"
-      ]);
-      if (graphState.passwordColumnKey) return;
+    function normalizeEmailKey(value) {
+      return String(value || "").trim().toLowerCase();
+    }
 
-      try {
-        await graph("/sites/" + graphState.siteId + "/lists/" + graphState.migrationListId + "/columns", {
-          method: "POST",
-          body: JSON.stringify({
-            name: "Senha",
-            text: {}
-          })
-        });
-        graphState.migrationColumns = await loadColumnMap(graphState.siteId, graphState.migrationListId);
-        graphState.passwordColumnKey = findColumnKey(graphState.migrationColumns, ["Senha"]);
-      } catch (error) {
-        graphState.passwordColumnKey = "";
-        console.warn("Nao consegui criar a coluna Senha no SharePoint.", error);
-      }
+    function localPasswordFor(emailPrincipal) {
+      return fixedPasswords[normalizeEmailKey(emailPrincipal)] || "";
     }
 
     function clearMsalCache() {
@@ -678,7 +722,6 @@ Atenciosamente,</textarea>
       graphState.scriptItemId = "";
       graphState.migrationColumns = {};
       graphState.scriptColumns = {};
-      graphState.passwordColumnKey = "";
       migrationData = [];
       document.getElementById("protected-content").classList.add("hidden");
       document.getElementById("auth-panel").classList.remove("hidden");
@@ -773,18 +816,18 @@ Atenciosamente,</textarea>
       graphState.scriptListId = await listByName(site.id, graphConfig.scriptListName);
       graphState.migrationColumns = await loadColumnMap(site.id, graphState.migrationListId);
       graphState.scriptColumns = await loadColumnMap(site.id, graphState.scriptListId);
-      await ensurePasswordColumn();
 
       const items = await graph("/sites/" + site.id + "/lists/" + graphState.migrationListId + "/items?$expand=fields&$top=999");
       migrationData = (items.value || []).map((item) => {
         const fields = item.fields || {};
+        const emailPrincipal = fieldValue(fields, ["EmailPrincipal", "Email Principal", "Title"], graphState.migrationColumns);
         return {
           id: item.id,
           source: "sharepoint",
-          emailPrincipal: fieldValue(fields, ["EmailPrincipal", "Email Principal", "Title"], graphState.migrationColumns),
+          emailPrincipal,
           emailNovo: fieldValue(fields, ["EmailNovo", "Email Novo"], graphState.migrationColumns),
           dono: fieldValue(fields, ["Dono"], graphState.migrationColumns),
-          senha: fieldValue(fields, ["Senha", "SENHA EMAIL PRINCIPAL", "SenhaEmailPrincipal"], graphState.migrationColumns),
+          senha: localPasswordFor(emailPrincipal),
           done: normalizeDone(fieldValue(fields, ["Concluido"], graphState.migrationColumns))
         };
       });
@@ -834,7 +877,6 @@ Atenciosamente,</textarea>
       const emailPrincipal = document.getElementById("add-email-principal").value.trim();
       const emailNovo = document.getElementById("add-email-novo").value.trim();
       const dono = document.getElementById("add-dono").value.trim();
-      const senha = document.getElementById("add-senha").value.trim();
       if (!emailPrincipal && !emailNovo) {
         syncStatus.textContent = "Preencha pelo menos um e-mail para adicionar.";
         return;
@@ -842,16 +884,12 @@ Atenciosamente,</textarea>
       if (!graphState.migrationListId) {
         await loadSharePointData();
       }
-      if (senha && !graphState.passwordColumnKey) {
-        await ensurePasswordColumn();
-      }
       const fields = fieldPatch(graphState.migrationColumns, [
         ["EmailPrincipal", emailPrincipal],
         ["EmailNovo", emailNovo],
         ["Dono", dono],
         ["Concluido", "N\u00e3o"]
       ]);
-      if (graphState.passwordColumnKey) fields[graphState.passwordColumnKey] = senha;
       if (!fields.Title) fields.Title = emailPrincipal || emailNovo;
       await graph("/sites/" + graphState.siteId + "/lists/" + graphState.migrationListId + "/items", {
         method: "POST",
@@ -860,7 +898,6 @@ Atenciosamente,</textarea>
       document.getElementById("add-email-principal").value = "";
       document.getElementById("add-email-novo").value = "";
       document.getElementById("add-dono").value = "";
-      document.getElementById("add-senha").value = "";
       syncStatus.textContent = "Item adicionado no SharePoint.";
       await loadSharePointData();
     }

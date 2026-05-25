@@ -41,7 +41,7 @@ index.html
 - Modo claro e modo escuro na interface do gerador.
 - Pagina auxiliar de script e conferencia de migracao de e-mails com login Microsoft.
 - Sincronizacao online com listas do SharePoint para a equipe autorizada.
-- Coluna de senha na conferencia, visivel somente depois do login Microsoft.
+- Consulta de senha na conferencia, visivel somente depois do login Microsoft.
 - Icone de navegador para aba e favoritos.
 
 ## Como Usar
@@ -114,11 +114,13 @@ Use `Sair / trocar conta` quando o navegador entrar com uma conta sem permissao.
 
 Depois de entrar, a pagina carrega os dados da lista `Controle Migracao Emails` do SharePoint em uma tabela limpa dentro do proprio site.
 
-Essa tabela tambem pode exibir a coluna `Senha`. A senha fica oculta por padrao, com botoes para revelar, ocultar novamente e copiar. O campo so aparece dentro da area protegida por login Microsoft.
+Essa tabela tambem pode exibir senha para pesquisa. A senha fica oculta por padrao, com botoes para revelar, ocultar novamente e copiar. O campo so aparece dentro da area protegida por login Microsoft.
+
+As senhas nao dependem da coluna `Senha` no SharePoint. O site busca a senha em uma tabela fixa interna usando o valor de `EmailPrincipal` carregado da lista.
 
 Ao marcar ou desmarcar uma conferencia, a alteracao e salva diretamente no SharePoint.
 
-Ao adicionar um novo item pela pagina, o site salva `EmailPrincipal`, `EmailNovo`, `Dono`, `Concluido` com valor `Nao` e `Senha`.
+Ao adicionar um novo item pela pagina, o site salva `EmailPrincipal`, `EmailNovo`, `Dono` e `Concluido` com valor `Nao`.
 
 A lista `Script Migracao Email` guarda o texto padrao de comunicacao da mudanca de e-mail. Ao editar o texto no site, ele tambem e salvo automaticamente no SharePoint.
 
@@ -126,9 +128,9 @@ O acesso depende de duas permissoes:
 
 - O usuario precisa pertencer a organizacao Microsoft 365 da instituicao.
 - O usuario precisa ter permissao nas listas do SharePoint.
-- O aplicativo Entra precisa da permissao delegada `Sites.ReadWrite.All` com consentimento de administrador para ler, criar coluna de texto e salvar itens nas listas.
+- O aplicativo Entra precisa da permissao delegada `Sites.ReadWrite.All` com consentimento de administrador para ler e salvar itens nas listas.
 
-Na lista `Controle Migracao Emails`, o site procura os nomes de coluna `Senha`, `SENHA EMAIL PRINCIPAL` ou `SenhaEmailPrincipal`. Se nenhuma dessas colunas existir, ele tenta criar a coluna `Senha` como texto com uma linha.
+Na lista `Controle Migracao Emails`, o site usa `EmailPrincipal` para encontrar a senha correspondente no proprio arquivo do site. A coluna `Senha` no SharePoint nao e necessaria.
 
 ## Estrutura
 
