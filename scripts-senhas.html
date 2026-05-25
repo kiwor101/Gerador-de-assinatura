@@ -643,15 +643,20 @@ Atenciosamente,</textarea>
       ]);
       if (graphState.passwordColumnKey) return;
 
-      await graph("/sites/" + graphState.siteId + "/lists/" + graphState.migrationListId + "/columns", {
-        method: "POST",
-        body: JSON.stringify({
-          name: "Senha",
-          text: {}
-        })
-      });
-      graphState.migrationColumns = await loadColumnMap(graphState.siteId, graphState.migrationListId);
-      graphState.passwordColumnKey = findColumnKey(graphState.migrationColumns, ["Senha"]);
+      try {
+        await graph("/sites/" + graphState.siteId + "/lists/" + graphState.migrationListId + "/columns", {
+          method: "POST",
+          body: JSON.stringify({
+            name: "Senha",
+            text: {}
+          })
+        });
+        graphState.migrationColumns = await loadColumnMap(graphState.siteId, graphState.migrationListId);
+        graphState.passwordColumnKey = findColumnKey(graphState.migrationColumns, ["Senha"]);
+      } catch (error) {
+        graphState.passwordColumnKey = "";
+        console.warn("Nao consegui criar a coluna Senha no SharePoint.", error);
+      }
     }
 
     function clearMsalCache() {
@@ -837,6 +842,9 @@ Atenciosamente,</textarea>
       if (!graphState.migrationListId) {
         await loadSharePointData();
       }
+      if (senha && !graphState.passwordColumnKey) {
+        await ensurePasswordColumn();
+      }
       const fields = fieldPatch(graphState.migrationColumns, [
         ["EmailPrincipal", emailPrincipal],
         ["EmailNovo", emailNovo],
@@ -952,9 +960,7 @@ Atenciosamente,</textarea>
     });
     document.getElementById("login-sharepoint").addEventListener("click", async () => {
       try {
-        clearMsalCache();
-        graphState.account = null;
-        authStatus.textContent = "Escolha a conta Microsoft autorizada.";
+        authStatus.textContent = "Conectando ao SharePoint...";
         await loadSharePointData();
       } catch (error) {
         authStatus.textContent = "Nao consegui conectar ao SharePoint. Use Sair / trocar conta e entre com uma conta autorizada.";
