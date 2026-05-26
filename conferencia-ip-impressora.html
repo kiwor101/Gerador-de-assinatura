@@ -607,7 +607,7 @@
 
     async function signOutSharePoint() {
       clearMsalCache();
-      resetSharePointState("Conta removida deste navegador. Clique em Entrar e escolha a conta correta.");
+      window.location.href = "index.html";
     }
 
     async function getToken() {

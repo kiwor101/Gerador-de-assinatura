@@ -765,8 +765,7 @@
 
     async function logoutMicrosoftAccount() {
       clearMicrosoftLogin();
-      updateProtectedLinks();
-      status.textContent = "Conta removida desta pagina.";
+      window.location.href = "index.html";
     }
 
     applyTheme(localStorage.getItem(themeStorageKey) || "light");
