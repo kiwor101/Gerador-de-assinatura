@@ -393,6 +393,10 @@
       text-align: right;
     }
 
+    .hidden {
+      display: none !important;
+    }
+
     .wide {
       grid-column: 1 / -1;
     }
@@ -750,7 +754,7 @@
 
     async function logoutMicrosoftAccount() {
       if (!msalApp) return;
-      msalApp.getAllAccounts().forEach((account) => msalApp.getTokenCache().removeAccount(account));
+      await Promise.all(msalApp.getAllAccounts().map((account) => msalApp.getTokenCache().removeAccount(account)));
       [localStorage, sessionStorage].forEach((storage) => {
         Object.keys(storage).forEach((key) => {
           const lowerKey = key.toLowerCase();
@@ -760,6 +764,7 @@
         });
       });
       updateProtectedLinks();
+      status.textContent = "Conta removida desta pagina.";
     }
 
     applyTheme(localStorage.getItem(themeStorageKey) || "light");
