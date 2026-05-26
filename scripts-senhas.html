@@ -1184,7 +1184,15 @@ Atenciosamente,</textarea>
     });
     window.addEventListener("resize", syncTopScrollWidth);
     updateAccountInfo();
-    renderMigration();
+    if (msalApp && msalApp.getAllAccounts().length) {
+      authStatus.textContent = "Carregando dados do SharePoint...";
+      loadSharePointData().catch((error) => {
+        authStatus.textContent = "Nao consegui carregar o SharePoint: " + friendlyGraphError(error);
+        renderMigration();
+      });
+    } else {
+      renderMigration();
+    }
   </script>
 </body>
 </html>
