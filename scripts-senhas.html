@@ -876,20 +876,8 @@ Atenciosamente,</textarea>
     }
 
     async function signOutSharePoint() {
-      authStatus.textContent = "Saindo da conta Microsoft...";
       if (msalApp) {
-        const account = graphState.account || msalApp.getAllAccounts()[0];
-        if (account) {
-          try {
-            await msalApp.logoutPopup({
-              account,
-              mainWindowRedirectUri: location.href,
-              postLogoutRedirectUri: location.href
-            });
-          } catch {
-            clearMsalCache();
-          }
-        }
+        msalApp.getAllAccounts().forEach((account) => msalApp.getTokenCache().removeAccount(account));
       }
       clearMsalCache();
       resetSharePointState("Conta removida deste navegador. Clique em Entrar e escolha a conta correta.");

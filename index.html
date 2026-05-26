@@ -705,11 +705,19 @@
       tenantId: "251017e3-b3a8-40f0-b6fe-57b159bcc5d8",
       scopes: ["User.Read", "Sites.ReadWrite.All"]
     };
+
+    function authRedirectUri() {
+      if (location.protocol === "file:") return location.href;
+      const githubPagesBase = "/Gerador-de-assinatura/";
+      if (location.pathname.startsWith(githubPagesBase)) return location.origin + githubPagesBase;
+      return location.origin + "/";
+    }
+
     const msalApp = window.msal ? new msal.PublicClientApplication({
       auth: {
         clientId: graphConfig.clientId,
         authority: "https://login.microsoftonline.com/" + graphConfig.tenantId,
-        redirectUri: location.origin + location.pathname
+        redirectUri: authRedirectUri()
       },
       cache: { cacheLocation: "localStorage" }
     }) : null;
@@ -742,8 +750,15 @@
 
     async function logoutMicrosoftAccount() {
       if (!msalApp) return;
-      const account = msalApp.getAllAccounts()[0];
-      if (account) await msalApp.logoutPopup({ account, mainWindowRedirectUri: location.href, postLogoutRedirectUri: location.href });
+      msalApp.getAllAccounts().forEach((account) => msalApp.getTokenCache().removeAccount(account));
+      [localStorage, sessionStorage].forEach((storage) => {
+        Object.keys(storage).forEach((key) => {
+          const lowerKey = key.toLowerCase();
+          if (lowerKey.includes(graphConfig.clientId.toLowerCase()) || lowerKey.startsWith("msal.")) {
+            storage.removeItem(key);
+          }
+        });
+      });
       updateProtectedLinks();
     }
 
