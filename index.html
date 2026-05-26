@@ -746,6 +746,17 @@
       loginMicrosoft.textContent = "Login";
     }
 
+    function clearMicrosoftLogin() {
+      [localStorage, sessionStorage].forEach((storage) => {
+        Object.keys(storage).forEach((key) => {
+          const lowerKey = key.toLowerCase();
+          if (lowerKey.includes(graphConfig.clientId.toLowerCase()) || lowerKey.startsWith("msal.") || lowerKey.includes("login.windows.net") || lowerKey.includes("login.microsoftonline.com")) {
+            storage.removeItem(key);
+          }
+        });
+      });
+    }
+
     async function loginMicrosoftAccount() {
       if (!msalApp) return;
       await msalApp.loginPopup({ scopes: graphConfig.scopes, prompt: "select_account" });
@@ -753,16 +764,7 @@
     }
 
     async function logoutMicrosoftAccount() {
-      if (!msalApp) return;
-      await Promise.all(msalApp.getAllAccounts().map((account) => msalApp.getTokenCache().removeAccount(account)));
-      [localStorage, sessionStorage].forEach((storage) => {
-        Object.keys(storage).forEach((key) => {
-          const lowerKey = key.toLowerCase();
-          if (lowerKey.includes(graphConfig.clientId.toLowerCase()) || lowerKey.startsWith("msal.")) {
-            storage.removeItem(key);
-          }
-        });
-      });
+      clearMicrosoftLogin();
       updateProtectedLinks();
       status.textContent = "Conta removida desta pagina.";
     }

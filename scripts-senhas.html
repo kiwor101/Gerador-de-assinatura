@@ -876,9 +876,6 @@ Atenciosamente,</textarea>
     }
 
     async function signOutSharePoint() {
-      if (msalApp) {
-        await Promise.all(msalApp.getAllAccounts().map((account) => msalApp.getTokenCache().removeAccount(account)));
-      }
       clearMsalCache();
       resetSharePointState("Conta removida deste navegador. Clique em Entrar e escolha a conta correta.");
     }
