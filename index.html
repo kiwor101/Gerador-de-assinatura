@@ -299,9 +299,15 @@
 
     .actions {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 18px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin: 4px 0 16px;
+    }
+
+    .actions button {
+      min-height: 34px;
+      padding: 0 10px;
+      font-size: 12px;
     }
 
     button {
@@ -477,10 +483,6 @@
       display: none !important;
     }
 
-    .wide {
-      grid-column: 1 / -1;
-    }
-
     .status {
       min-height: 18px;
       margin-top: 12px;
@@ -621,6 +623,13 @@
         </div>
       </div>
 
+      <div class="actions">
+        <button class="primary" type="button" id="copy-signature">Copiar assinatura</button>
+        <button class="secondary" type="button" id="copy-image">Copiar PNG</button>
+        <button class="secondary" type="button" id="download-image">Baixar PNG</button>
+      </div>
+      <div class="status" id="status" aria-live="polite"></div>
+
       <div class="field">
         <label>Logos salvos</label>
         <div class="logo-library" id="logo-library"></div>
@@ -683,13 +692,6 @@
         <button class="preset" type="button" data-preset="goldBlack">Dourado preto</button>
       </div>
 
-      <div class="actions">
-        <button class="primary" type="button" id="copy-signature">Copiar assinatura</button>
-        <button class="secondary" type="button" id="copy-html">Copiar HTML</button>
-        <button class="secondary wide" type="button" id="copy-image">Copiar como imagem PNG</button>
-        <button class="secondary wide" type="button" id="download-image">Baixar imagem PNG</button>
-      </div>
-      <div class="status" id="status" aria-live="polite"></div>
     </section>
 
     <section class="panel preview-panel">
@@ -1293,7 +1295,6 @@
       reader.readAsDataURL(file);
     });
     document.getElementById("copy-signature").addEventListener("click", copySignature);
-    document.getElementById("copy-html").addEventListener("click", () => copyText(output.value, "HTML copiado."));
     document.getElementById("copy-image").addEventListener("click", copyImage);
     document.getElementById("download-image").addEventListener("click", downloadImage);
     renderLogoLibrary();

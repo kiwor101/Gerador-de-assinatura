@@ -60,15 +60,11 @@ index.html
 
 Recomendado para Outlook Classic. Copia a assinatura pronta com HTML formatado.
 
-`Copiar HTML`
-
-Gera o codigo HTML da assinatura para uso manual ou em ferramentas que aceitam HTML.
-
-`Copiar como imagem PNG`
+`Copiar PNG`
 
 Copia a assinatura como imagem unica. E uma alternativa quando o Outlook Web altera o layout do HTML.
 
-`Baixar imagem PNG`
+`Baixar PNG`
 
 Baixa a assinatura como imagem. Util quando o usuario prefere inserir a assinatura como arquivo de imagem.
 
