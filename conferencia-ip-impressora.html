@@ -42,7 +42,7 @@
       background: var(--surface);
       color: var(--ink);
       font-family: Arial, Helvetica, sans-serif;
-      padding-left: 190px;
+      padding-left: 150px;
     }
 
     .page {
@@ -106,12 +106,12 @@
 
     .side-nav {
       position: fixed;
-      top: 18px;
-      left: 18px;
+      top: 82px;
+      left: 16px;
       z-index: 20;
       display: grid;
-      gap: 8px;
-      width: 154px;
+      gap: 7px;
+      width: 122px;
     }
 
     .side-nav a,
@@ -130,14 +130,33 @@
     }
 
     .side-nav .login-button {
+      position: fixed;
+      top: 14px;
+      right: 104px;
+      width: auto;
+      min-width: 78px;
+      min-height: 34px;
+      padding: 0 14px;
       background: var(--blue);
       color: #ffffff;
     }
 
+    .side-nav #logout-sharepoint-header {
+      position: fixed;
+      top: 14px;
+      right: 104px;
+      width: auto;
+      min-width: 110px;
+      min-height: 34px;
+      padding: 0 14px;
+    }
+
     .side-nav .theme-toggle {
-      justify-self: start;
-      width: 100%;
-      min-height: 38px;
+      position: fixed;
+      top: 14px;
+      right: 16px;
+      width: 76px;
+      min-height: 34px;
       border-radius: 6px;
       padding: 0 10px;
       font-size: 12px;
@@ -173,7 +192,13 @@
 
     .top-account {
       width: min(1180px, calc(100% - 40px));
-      margin: 18px auto -12px;
+      position: fixed;
+      top: 22px;
+      right: 236px;
+      z-index: 21;
+      width: auto;
+      max-width: 520px;
+      margin: 0;
       color: var(--muted);
       font-size: 12px;
       line-height: 18px;
@@ -378,9 +403,15 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
+      .side-nav .login-button,
+      .side-nav #logout-sharepoint-header,
+      .side-nav .theme-toggle,
       .top-account {
+        position: static;
+        width: 100%;
+        max-width: none;
         width: min(720px, calc(100% - 28px));
-        margin: 12px auto -4px;
+        margin: 0;
         text-align: left;
       }
     }
@@ -564,7 +595,7 @@
       accountName.textContent = label;
       accountPill.classList.toggle("hidden", !label);
       logoutHeaderButton.classList.toggle("hidden", !label);
-      loginSharePointButton.textContent = "Login";
+      loginSharePointButton.classList.toggle("hidden", !!label);
       protectedLinks.forEach((link) => link.classList.toggle("locked", !label));
     }
 

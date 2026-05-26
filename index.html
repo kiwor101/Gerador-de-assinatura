@@ -33,7 +33,7 @@
       background: var(--surface);
       color: var(--ink);
       font-family: Arial, Helvetica, sans-serif;
-      padding-left: 190px;
+      padding-left: 150px;
     }
 
     body.dark {
@@ -332,12 +332,12 @@
 
     .side-nav {
       position: fixed;
-      top: 18px;
-      left: 18px;
+      top: 82px;
+      left: 16px;
       z-index: 20;
       display: grid;
-      gap: 8px;
-      width: 154px;
+      gap: 7px;
+      width: 122px;
     }
 
     .side-nav a,
@@ -356,13 +356,33 @@
     }
 
     .side-nav .login-button {
+      position: fixed;
+      top: 14px;
+      right: 104px;
+      width: auto;
+      min-width: 78px;
+      min-height: 34px;
+      padding: 0 14px;
       background: var(--blue);
       color: #ffffff;
     }
 
+    .side-nav #logout-microsoft {
+      position: fixed;
+      top: 14px;
+      right: 104px;
+      width: auto;
+      min-width: 110px;
+      min-height: 34px;
+      padding: 0 14px;
+    }
+
     .side-nav .theme-toggle {
-      justify-self: start;
-      width: 100%;
+      position: fixed;
+      top: 14px;
+      right: 16px;
+      width: 76px;
+      min-height: 34px;
     }
 
     .side-nav .protected.locked {
@@ -386,7 +406,13 @@
 
     .top-account {
       width: min(1180px, calc(100% - 40px));
-      margin: 18px auto -12px;
+      position: fixed;
+      top: 22px;
+      right: 236px;
+      z-index: 21;
+      width: auto;
+      max-width: 520px;
+      margin: 0;
       color: var(--muted);
       font-size: 12px;
       line-height: 18px;
@@ -464,6 +490,17 @@
         width: min(720px, calc(100% - 28px));
         margin: 14px auto 0;
         grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .side-nav .login-button,
+      .side-nav #logout-microsoft,
+      .side-nav .theme-toggle,
+      .top-account {
+        position: static;
+        width: 100%;
+        max-width: none;
+        margin: 0;
+        text-align: left;
       }
     }
   </style>
@@ -743,7 +780,7 @@
       sideAccount.textContent = label ? "Conta logada: " + label : "";
       sideAccount.classList.toggle("hidden", !label);
       logoutMicrosoft.classList.toggle("hidden", !label);
-      loginMicrosoft.textContent = "Login";
+      loginMicrosoft.classList.toggle("hidden", !!label);
     }
 
     function clearMicrosoftLogin() {
