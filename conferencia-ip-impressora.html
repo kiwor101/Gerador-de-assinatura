@@ -103,6 +103,28 @@
       color: var(--blue);
     }
 
+    .account-pill {
+      min-height: 40px;
+      display: inline-flex;
+      align-items: center;
+      max-width: 320px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--panel);
+      color: var(--muted);
+      padding: 0 12px;
+      font-size: 12px;
+      line-height: 16px;
+    }
+
+    .account-pill strong {
+      color: var(--blue);
+      font-size: 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     button.danger {
       background: var(--danger);
       color: #ffffff;
@@ -299,6 +321,8 @@
       <div class="actions">
         <a href="scripts-senhas.html?v=20260526">Script Emails</a>
         <a href="index.html">Voltar ao gerador</a>
+        <span class="account-pill hidden" id="account-pill">Conta: <strong id="account-name"></strong></span>
+        <button class="secondary hidden" type="button" id="logout-sharepoint-header">Sair / trocar conta</button>
         <button type="button" id="theme-toggle">Modo escuro</button>
       </div>
     </header>
@@ -308,7 +332,6 @@
       <p class="note">Entre com sua conta Microsoft para carregar e salvar a conferencia de IP e impressoras no SharePoint.</p>
       <div class="auth-actions">
         <button type="button" id="login-sharepoint">Entrar</button>
-        <button class="secondary" type="button" id="logout-sharepoint">Sair / trocar conta</button>
       </div>
       <div class="status" id="auth-status" aria-live="polite"></div>
     </section>
@@ -319,7 +342,6 @@
       <div class="sync-bar">
         <span class="sync-status" id="sync-status">Conectado ao SharePoint.</span>
         <button class="secondary" type="button" id="refresh-list">Atualizar</button>
-        <button class="secondary" type="button" id="logout-sharepoint-active">Sair / trocar conta</button>
       </div>
 
       <div class="toolbar">
@@ -367,6 +389,9 @@
 
     const themeToggle = document.getElementById("theme-toggle");
     const authStatus = document.getElementById("auth-status");
+    const accountPill = document.getElementById("account-pill");
+    const accountName = document.getElementById("account-name");
+    const logoutHeaderButton = document.getElementById("logout-sharepoint-header");
     const syncStatus = document.getElementById("sync-status");
     const ipSearch = document.getElementById("ip-search");
     let ipRows = [];
@@ -436,6 +461,40 @@
       return patch;
     }
 
+    function applyColumnAliases(columnMap, groups) {
+      groups.forEach((group) => {
+        const key = group
+          .map((name) => columnMap[name] || columnMap[normalizeColumnName(name)])
+          .find(Boolean);
+        if (!key) return;
+        group.forEach((name) => {
+          columnMap[name] = columnMap[name] || key;
+          columnMap[normalizeColumnName(name)] = columnMap[normalizeColumnName(name)] || key;
+        });
+      });
+    }
+
+    function accountLabel(account) {
+      return account?.username || account?.name || "";
+    }
+
+    function updateAccountInfo() {
+      const label = accountLabel(graphState.account || msalApp?.getAllAccounts?.()[0]);
+      accountName.textContent = label;
+      accountPill.classList.toggle("hidden", !label);
+      logoutHeaderButton.classList.toggle("hidden", !label);
+    }
+
+    function friendlyGraphError(error) {
+      const raw = String(error?.message || error || "");
+      try {
+        const parsed = JSON.parse(raw);
+        return parsed?.error?.message || raw;
+      } catch {
+        return raw;
+      }
+    }
+
     function clearMsalCache() {
       [localStorage, sessionStorage].forEach((storage) => {
         Object.keys(storage).forEach((key) => {
@@ -459,6 +518,7 @@
       document.getElementById("auth-panel").classList.remove("hidden");
       authStatus.textContent = message || "";
       syncStatus.textContent = "Conectado ao SharePoint.";
+      updateAccountInfo();
       renderIpRows();
     }
 
@@ -490,12 +550,16 @@
         const login = await msalApp.loginPopup({ scopes: graphConfig.scopes, prompt: "select_account" });
         graphState.account = login.account;
       }
+      updateAccountInfo();
       try {
         const result = await msalApp.acquireTokenSilent({ scopes: graphConfig.scopes, account: graphState.account });
+        graphState.account = result.account || graphState.account;
+        updateAccountInfo();
         return result.accessToken;
       } catch {
         const result = await msalApp.acquireTokenPopup({ scopes: graphConfig.scopes, account: graphState.account });
         graphState.account = result.account;
+        updateAccountInfo();
         return result.accessToken;
       }
     }
@@ -546,6 +610,11 @@
       graphState.siteId = site.id;
       graphState.printerListId = await listByName(site.id, graphConfig.printerListName);
       graphState.printerColumns = await loadColumnMap(site.id, graphState.printerListId);
+      applyColumnAliases(graphState.printerColumns, [
+        ["Nome/Setor", "Nome Setor", "NomeSetor", "Setor", "Title", "Nome_x002f_Setor", "Nome_x0020_Setor"],
+        ["Ip Computador", "IP Computador", "IpComputador", "Computador", "Ip_x0020_Computador", "IP_x0020_Computador"],
+        ["Impressora/Ip", "Impressora/IP", "Impressora Ip", "Impressora IP", "ImpressoraIp", "Impressora_x002f_Ip", "Impressora_x0020_Ip"]
+      ]);
 
       const items = await graph("/sites/" + site.id + "/lists/" + graphState.printerListId + "/items?$expand=fields&$top=999");
       ipRows = (items.value || []).map((item) => {
@@ -562,6 +631,7 @@
       document.getElementById("protected-content").classList.remove("hidden");
       authStatus.textContent = "";
       syncStatus.textContent = "Conectado ao SharePoint. Alteracoes salvas automaticamente.";
+      updateAccountInfo();
       renderIpRows();
     }
 
@@ -725,8 +795,7 @@
         authStatus.textContent = "Nao consegui conectar ao SharePoint. Use Sair / trocar conta e entre com uma conta autorizada.";
       }
     });
-    document.getElementById("logout-sharepoint").addEventListener("click", signOutSharePoint);
-    document.getElementById("logout-sharepoint-active").addEventListener("click", signOutSharePoint);
+    logoutHeaderButton.addEventListener("click", signOutSharePoint);
     document.getElementById("refresh-list").addEventListener("click", async () => {
       try {
         syncStatus.textContent = "Atualizando...";
@@ -738,8 +807,8 @@
     document.getElementById("add-ip-row").addEventListener("click", async () => {
       try {
         await addIpRow();
-      } catch {
-        syncStatus.textContent = "Nao consegui adicionar no SharePoint. Confira os campos e tente novamente.";
+      } catch (error) {
+        syncStatus.textContent = "Nao consegui adicionar no SharePoint: " + friendlyGraphError(error);
       }
     });
     ipSearch.addEventListener("input", renderIpRows);
@@ -750,6 +819,7 @@
       document.querySelector(".table-wrap").scrollLeft = event.target.scrollLeft;
     });
     window.addEventListener("resize", syncTopScrollWidth);
+    updateAccountInfo();
     if (msalApp && msalApp.getAllAccounts().length) {
       loadSharePointData().catch(() => {
         authStatus.textContent = "Clique em Entrar para carregar a conferencia.";

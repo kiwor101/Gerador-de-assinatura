@@ -69,6 +69,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
+      align-items: center;
     }
 
     a,
@@ -97,6 +98,28 @@
     button.secondary {
       background: var(--soft);
       color: var(--blue);
+    }
+
+    .account-pill {
+      min-height: 40px;
+      display: inline-flex;
+      align-items: center;
+      max-width: 320px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--panel);
+      color: var(--muted);
+      padding: 0 12px;
+      font-size: 12px;
+      line-height: 16px;
+    }
+
+    .account-pill strong {
+      color: var(--blue);
+      font-size: 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .panel {
@@ -371,6 +394,8 @@
       <div class="actions">
         <a href="index.html">Voltar ao gerador</a>
         <a href="conferencia-ip-impressora.html?v=20260526">Conferencia IP Impressora</a>
+        <span class="account-pill hidden" id="account-pill">Conta: <strong id="account-name"></strong></span>
+        <button class="secondary hidden" type="button" id="logout-sharepoint-header">Sair / trocar conta</button>
         <button type="button" id="theme-toggle">Modo escuro</button>
       </div>
     </header>
@@ -380,7 +405,6 @@
       <p class="note">Entre com sua conta Microsoft para carregar o script e a conferencia de e-mails salvos no SharePoint.</p>
       <div class="auth-actions">
         <button type="button" id="login-sharepoint">Entrar</button>
-        <button class="secondary" type="button" id="logout-sharepoint">Sair / trocar conta</button>
       </div>
       <div class="status" id="auth-status" aria-live="polite"></div>
     </section>
@@ -411,7 +435,6 @@ Atenciosamente,</textarea>
       <p class="note">Marque os setores ja conferidos. Cada alteracao e salva automaticamente no SharePoint. As senhas sao consultadas pelo e-mail principal dentro do proprio site.</p>
       <div class="sync-bar">
         <span class="sync-status" id="sync-status">Conectado ao SharePoint.</span>
-        <button class="secondary" type="button" id="logout-sharepoint-active">Sair / trocar conta</button>
       </div>
       <div class="toolbar">
         <input id="migration-search" type="search" placeholder="Pesquisar por e-mail ou dono">
@@ -451,6 +474,9 @@ Atenciosamente,</textarea>
     const themeToggle = document.getElementById("theme-toggle");
     const status = document.getElementById("status");
     const authStatus = document.getElementById("auth-status");
+    const accountPill = document.getElementById("account-pill");
+    const accountName = document.getElementById("account-name");
+    const logoutHeaderButton = document.getElementById("logout-sharepoint-header");
     const scriptSyncStatus = document.getElementById("script-sync-status");
     const scriptText = document.getElementById("script-text");
     const migrationStorageKey = "santa-casa-migracao-conferencia-v1";
@@ -654,7 +680,7 @@ Atenciosamente,</textarea>
     }
 
     function doneValue(done) {
-      return done ? "sim" : "N\u00e3o";
+      return done ? "sim" : "não";
     }
 
     function normalizeColumnName(name) {
@@ -686,6 +712,40 @@ Atenciosamente,</textarea>
         patch[key] = value;
       });
       return patch;
+    }
+
+    function applyColumnAliases(columnMap, groups) {
+      groups.forEach((group) => {
+        const key = group
+          .map((name) => columnMap[name] || columnMap[normalizeColumnName(name)])
+          .find(Boolean);
+        if (!key) return;
+        group.forEach((name) => {
+          columnMap[name] = columnMap[name] || key;
+          columnMap[normalizeColumnName(name)] = columnMap[normalizeColumnName(name)] || key;
+        });
+      });
+    }
+
+    function accountLabel(account) {
+      return account?.username || account?.name || "";
+    }
+
+    function updateAccountInfo() {
+      const label = accountLabel(graphState.account || msalApp?.getAllAccounts?.()[0]);
+      accountName.textContent = label;
+      accountPill.classList.toggle("hidden", !label);
+      logoutHeaderButton.classList.toggle("hidden", !label);
+    }
+
+    function friendlyGraphError(error) {
+      const raw = String(error?.message || error || "");
+      try {
+        const parsed = JSON.parse(raw);
+        return parsed?.error?.message || raw;
+      } catch {
+        return raw;
+      }
     }
 
     function findColumnKey(columnMap, names) {
@@ -728,6 +788,7 @@ Atenciosamente,</textarea>
       document.getElementById("auth-panel").classList.remove("hidden");
       authStatus.textContent = message || "";
       syncStatus.textContent = "Conectado ao SharePoint.";
+      updateAccountInfo();
       renderMigration();
     }
 
@@ -759,12 +820,16 @@ Atenciosamente,</textarea>
         const login = await msalApp.loginPopup({ scopes: graphConfig.scopes, prompt: "select_account" });
         graphState.account = login.account;
       }
+      updateAccountInfo();
       try {
         const result = await msalApp.acquireTokenSilent({ scopes: graphConfig.scopes, account: graphState.account });
+        graphState.account = result.account || graphState.account;
+        updateAccountInfo();
         return result.accessToken;
       } catch {
         const result = await msalApp.acquireTokenPopup({ scopes: graphConfig.scopes, account: graphState.account });
         graphState.account = result.account;
+        updateAccountInfo();
         return result.accessToken;
       }
     }
@@ -817,6 +882,15 @@ Atenciosamente,</textarea>
       graphState.scriptListId = await listByName(site.id, graphConfig.scriptListName);
       graphState.migrationColumns = await loadColumnMap(site.id, graphState.migrationListId);
       graphState.scriptColumns = await loadColumnMap(site.id, graphState.scriptListId);
+      applyColumnAliases(graphState.migrationColumns, [
+        ["EmailPrincipal", "Email Principal", "E-mail principal", "E-mail Principal", "Title"],
+        ["EmailNovo", "Email Novo", "E-mail novo", "E-mail Novo"],
+        ["Dono"],
+        ["Concluido", "Concluído", "Concluido?", "Concluido"]
+      ]);
+      applyColumnAliases(graphState.scriptColumns, [
+        ["TextoScript", "Texto Script", "Script", "Comunicado"]
+      ]);
 
       const items = await graph("/sites/" + site.id + "/lists/" + graphState.migrationListId + "/items?$expand=fields&$top=999");
       migrationData = (items.value || []).map((item) => {
@@ -838,6 +912,7 @@ Atenciosamente,</textarea>
       document.getElementById("protected-content").classList.remove("hidden");
       authStatus.textContent = "";
       syncStatus.textContent = "Conectado ao SharePoint. Alteracoes salvas automaticamente.";
+      updateAccountInfo();
       renderMigration();
     }
 
@@ -1004,13 +1079,12 @@ Atenciosamente,</textarea>
         authStatus.textContent = "Nao consegui conectar ao SharePoint. Use Sair / trocar conta e entre com uma conta autorizada.";
       }
     });
-    document.getElementById("logout-sharepoint").addEventListener("click", signOutSharePoint);
-    document.getElementById("logout-sharepoint-active").addEventListener("click", signOutSharePoint);
+    logoutHeaderButton.addEventListener("click", signOutSharePoint);
     document.getElementById("add-migration").addEventListener("click", async () => {
       try {
         await addSharePointMigration();
       } catch (error) {
-        syncStatus.textContent = "Nao consegui adicionar no SharePoint. Confira os campos e tente novamente.";
+        syncStatus.textContent = "Nao consegui adicionar no SharePoint: " + friendlyGraphError(error);
       }
     });
     scriptText.value = localStorage.getItem(scriptStorageKey) || scriptText.value;
@@ -1034,6 +1108,7 @@ Atenciosamente,</textarea>
       document.querySelector(".table-wrap").scrollLeft = event.target.scrollLeft;
     });
     window.addEventListener("resize", syncTopScrollWidth);
+    updateAccountInfo();
     renderMigration();
   </script>
 </body>
