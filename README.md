@@ -39,7 +39,8 @@ index.html
 - Copia da assinatura pronta para colar no Outlook.
 - Geracao e download da assinatura como PNG.
 - Modo claro e modo escuro na interface do gerador.
-- Pagina auxiliar de script e conferencia de migracao de e-mails com login Microsoft.
+- Pagina auxiliar de script de e-mails com login Microsoft.
+- Pagina de conferencia de IP e impressoras ligada ao SharePoint.
 - Sincronizacao online com listas do SharePoint para a equipe autorizada.
 - Consulta de senha na conferencia, visivel somente depois do login Microsoft.
 - Icone de navegador para aba e favoritos.
@@ -106,9 +107,9 @@ O modo escuro muda apenas a interface do gerador.
 
 A assinatura, a pre-visualizacao e a PNG gerada continuam com fundo branco para evitar problemas de leitura e compatibilidade no e-mail.
 
-## Scripts e Conferencia
+## Script Emails
 
-O botao `Scripts e conferencia` abre uma pagina protegida por login Microsoft.
+O botao `Script Emails` abre a pagina de scripts e conferencia de e-mails, protegida por login Microsoft.
 
 Use `Sair / trocar conta` quando o navegador entrar com uma conta sem permissao. Isso limpa a conta salva para permitir escolher outro usuario no proximo login.
 
@@ -132,6 +133,20 @@ O acesso depende de duas permissoes:
 
 Na lista `Controle Migracao Emails`, o site usa `EmailPrincipal` para encontrar a senha correspondente no proprio arquivo do site. A coluna `Senha` no SharePoint nao e necessaria.
 
+## Conferencia IP Impressora
+
+A pagina `Conferencia IP Impressora` e acessada a partir da tela `Script Emails`.
+
+Ela usa a mesma autenticacao Microsoft salva no navegador e carrega a lista `Conferencia ip e impressoras` do SharePoint.
+
+Campos usados na lista:
+
+- `Nome/Setor`
+- `Ip Computador`
+- `Impressora/Ip`
+
+Pela pagina do site e possivel adicionar, editar e excluir itens. As alteracoes sao salvas diretamente na lista do SharePoint.
+
 ## Estrutura
 
 ```text
@@ -139,6 +154,7 @@ Na lista `Controle Migracao Emails`, o site usa `EmailPrincipal` para encontrar 
 |-- index.html
 |-- gerador-assinatura-santa-casa.html
 |-- scripts-senhas.html
+|-- conferencia-ip-impressora.html
 |-- assinatura-santa-casa.html
 |-- assinatura-santa-casa-exemplo.html
 |-- logo-santa-casa.png
