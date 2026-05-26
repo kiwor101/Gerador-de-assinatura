@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
@@ -42,6 +42,7 @@
       background: var(--surface);
       color: var(--ink);
       font-family: Arial, Helvetica, sans-serif;
+      padding-right: 190px;
     }
 
     .page {
@@ -101,6 +102,51 @@
     button.secondary {
       background: var(--soft);
       color: var(--blue);
+    }
+
+    .side-nav {
+      position: fixed;
+      top: 18px;
+      right: 18px;
+      z-index: 20;
+      display: grid;
+      gap: 8px;
+      width: 154px;
+    }
+
+    .side-nav a,
+    .side-nav button {
+      display: grid;
+      place-items: center;
+      width: 100%;
+      min-height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--panel);
+      color: var(--blue);
+      font: 700 12px Arial, Helvetica, sans-serif;
+      text-align: center;
+      text-decoration: none;
+    }
+
+    .side-nav .login-button {
+      background: var(--blue);
+      color: #ffffff;
+    }
+
+    .side-nav .theme-toggle {
+      justify-self: end;
+      width: 40px;
+      min-height: 40px;
+      border-radius: 999px;
+      padding: 0;
+      font-size: 17px;
+    }
+
+    .side-nav .protected.locked {
+      opacity: 0.45;
+      cursor: not-allowed;
+      filter: grayscale(0.35);
     }
 
     .account-pill {
@@ -311,28 +357,40 @@
       .add-form {
         grid-template-columns: 1fr;
       }
+
+      body {
+        padding-right: 0;
+      }
+
+      .side-nav {
+        position: static;
+        width: min(720px, calc(100% - 28px));
+        margin: 14px auto 0;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
     }
   </style>
 </head>
 <body>
+  <aside class="side-nav" aria-label="Acessos">
+    <button class="login-button" type="button" id="login-sharepoint">Login</button>
+    <span class="account-pill hidden" id="account-pill">Conta: <strong id="account-name"></strong></span>
+    <button class="secondary hidden" type="button" id="logout-sharepoint-header">Sair / trocar conta</button>
+    <a class="protected locked" href="scripts-senhas.html?v=20260526-menu1">Emails</a>
+    <a class="protected locked" href="conferencia-ip-impressora.html?v=20260526-menu1">Conferencia</a>
+    <a class="protected locked" href="https://admin.cloud.microsoft/#/users" target="_blank" rel="noopener">Painel contas Microsoft</a>
+    <a href="https://outlook.cloud.microsoft/" target="_blank" rel="noopener">Web Microsoft email</a>
+    <a href="https://webmail-seguro.com.br/" target="_blank" rel="noopener">Web Localweb email</a>
+    <button type="button" id="theme-toggle" class="theme-toggle" title="Alternar tema">?</button>
+  </aside>
   <main class="page">
     <header class="header">
-      <h1>Conferencia IP Impressora</h1>
-      <div class="actions">
-        <a href="scripts-senhas.html?v=20260526">Script Emails</a>
-        <a href="index.html">Voltar ao gerador</a>
-        <span class="account-pill hidden" id="account-pill">Conta: <strong id="account-name"></strong></span>
-        <button class="secondary hidden" type="button" id="logout-sharepoint-header">Sair / trocar conta</button>
-        <button type="button" id="theme-toggle">Modo escuro</button>
-      </div>
+      <h1>Conferencia</h1>
     </header>
 
     <section class="panel" id="auth-panel">
       <h2>Acesso Microsoft</h2>
       <p class="note">Entre com sua conta Microsoft para carregar e salvar a conferencia de IP e impressoras no SharePoint.</p>
-      <div class="auth-actions">
-        <button type="button" id="login-sharepoint">Entrar</button>
-      </div>
       <div class="status" id="auth-status" aria-live="polite"></div>
     </section>
 
@@ -392,6 +450,8 @@
     const accountPill = document.getElementById("account-pill");
     const accountName = document.getElementById("account-name");
     const logoutHeaderButton = document.getElementById("logout-sharepoint-header");
+    const loginSharePointButton = document.getElementById("login-sharepoint");
+    const protectedLinks = Array.from(document.querySelectorAll(".side-nav .protected"));
     const syncStatus = document.getElementById("sync-status");
     const ipSearch = document.getElementById("ip-search");
     let ipRows = [];
@@ -419,7 +479,7 @@
     function applyTheme(theme) {
       const isDark = theme === "dark";
       document.body.classList.toggle("dark", isDark);
-      themeToggle.textContent = isDark ? "Modo claro" : "Modo escuro";
+      themeToggle.textContent = isDark ? "?" : "?";
     }
 
     function escapeHtml(text) {
@@ -488,6 +548,8 @@
       accountName.textContent = label;
       accountPill.classList.toggle("hidden", !label);
       logoutHeaderButton.classList.toggle("hidden", !label);
+      loginSharePointButton.textContent = "Login";
+      protectedLinks.forEach((link) => link.classList.toggle("locked", !label));
     }
 
     function friendlyGraphError(error) {
@@ -792,13 +854,20 @@
       localStorage.setItem(themeStorageKey, nextTheme);
       applyTheme(nextTheme);
     });
-    document.getElementById("login-sharepoint").addEventListener("click", async () => {
+    loginSharePointButton.addEventListener("click", async () => {
       try {
         authStatus.textContent = "Conectando ao SharePoint...";
         await loadSharePointData();
       } catch {
         authStatus.textContent = "Nao consegui conectar ao SharePoint. Use Sair / trocar conta e entre com uma conta autorizada.";
       }
+    });
+    protectedLinks.forEach((link) => {
+      link.addEventListener("click", (event) => {
+        if (!link.classList.contains("locked")) return;
+        event.preventDefault();
+        authStatus.textContent = "Entre com sua conta Microsoft para acessar este link.";
+      });
     });
     logoutHeaderButton.addEventListener("click", signOutSharePoint);
     document.getElementById("refresh-list").addEventListener("click", async () => {

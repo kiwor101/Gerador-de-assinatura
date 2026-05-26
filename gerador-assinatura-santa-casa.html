@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
@@ -33,6 +33,7 @@
       background: var(--surface);
       color: var(--ink);
       font-family: Arial, Helvetica, sans-serif;
+      padding-right: 190px;
     }
 
     body.dark {
@@ -319,23 +320,68 @@
     }
 
     .theme-toggle {
-      width: 100%;
-      margin: 0 0 18px;
+      width: 40px;
+      min-height: 40px;
       border: 1px solid var(--line);
+      border-radius: 999px;
       background: var(--soft-bg);
       color: var(--blue);
+      padding: 0;
+      font-size: 17px;
     }
 
-    .nav-button {
+    .side-nav {
+      position: fixed;
+      top: 18px;
+      right: 18px;
+      z-index: 20;
+      display: grid;
+      gap: 8px;
+      width: 154px;
+    }
+
+    .side-nav a,
+    .side-nav button {
       display: grid;
       place-items: center;
-      min-height: 42px;
-      margin: -8px 0 18px;
+      width: 100%;
+      min-height: 38px;
+      border: 1px solid var(--line);
       border-radius: 6px;
-      background: var(--button-soft);
-      color: var(--button-soft-text);
-      font: 700 13px Arial, Helvetica, sans-serif;
+      background: var(--white);
+      color: var(--blue);
+      font: 700 12px Arial, Helvetica, sans-serif;
+      text-align: center;
       text-decoration: none;
+    }
+
+    .side-nav .login-button {
+      background: var(--blue);
+      color: #ffffff;
+    }
+
+    .side-nav .theme-toggle {
+      justify-self: end;
+      width: 40px;
+    }
+
+    .side-nav .protected.locked {
+      opacity: 0.45;
+      cursor: not-allowed;
+      filter: grayscale(0.35);
+    }
+
+    .side-account {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--soft-bg);
+      color: var(--muted);
+      padding: 7px 8px;
+      font-size: 11px;
+      line-height: 15px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .wide {
@@ -395,16 +441,35 @@
         width: min(720px, calc(100% - 28px));
         padding: 18px 0;
       }
+
+      body {
+        padding-right: 0;
+      }
+
+      .side-nav {
+        position: static;
+        width: min(720px, calc(100% - 28px));
+        margin: 14px auto 0;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
     }
   </style>
 </head>
 <body>
+  <aside class="side-nav" aria-label="Acessos">
+    <button class="login-button" type="button" id="login-microsoft">Login</button>
+    <div class="side-account hidden" id="side-account"></div>
+    <a class="protected locked" href="scripts-senhas.html?v=20260526-menu1">Emails</a>
+    <a class="protected locked" href="conferencia-ip-impressora.html?v=20260526-menu1">Conferencia</a>
+    <a class="protected locked" href="https://admin.cloud.microsoft/#/users" target="_blank" rel="noopener">Painel contas Microsoft</a>
+    <a href="https://outlook.cloud.microsoft/" target="_blank" rel="noopener">Web Microsoft email</a>
+    <a href="https://webmail-seguro.com.br/" target="_blank" rel="noopener">Web Localweb email</a>
+    <button class="theme-toggle" type="button" id="theme-toggle" title="Alternar tema">?</button>
+  </aside>
   <main class="app">
     <section class="panel form-panel">
       <h1>Gerador de Assinatura</h1>
       <p class="subtitle">Preencha os campos e copie a assinatura pronta para o usu&aacute;rio.</p>
-      <button class="theme-toggle" type="button" id="theme-toggle">Modo escuro</button>
-      <a class="nav-button" id="scripts-link" href="scripts-senhas.html?v=20260526">Script Emails</a>
 
       <div class="field">
         <label for="name">Nome completo</label>
@@ -521,6 +586,7 @@
   </main>
   <footer class="page-footer">Copyright &copy; 2026 kiwors.</footer>
 
+  <script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
   <script>
     const fixedPhone = "(18) 3702-1100";
     const fixedSite = "www.santacasaandradina.com.br";
@@ -619,14 +685,50 @@
     const status = document.getElementById("status");
     const logoLibraryElement = document.getElementById("logo-library");
     const themeToggle = document.getElementById("theme-toggle");
+    const loginMicrosoft = document.getElementById("login-microsoft");
+    const sideAccount = document.getElementById("side-account");
+    const protectedLinks = Array.from(document.querySelectorAll(".side-nav .protected"));
+    const graphConfig = {
+      clientId: "9adc7394-4ea7-409b-bbe7-57c891f7a575",
+      tenantId: "251017e3-b3a8-40f0-b6fe-57b159bcc5d8",
+      scopes: ["User.Read", "Sites.ReadWrite.All"]
+    };
+    const msalApp = window.msal ? new msal.PublicClientApplication({
+      auth: {
+        clientId: graphConfig.clientId,
+        authority: "https://login.microsoftonline.com/" + graphConfig.tenantId,
+        redirectUri: location.origin + location.pathname
+      },
+      cache: { cacheLocation: "localStorage" }
+    }) : null;
 
     function applyTheme(theme) {
       const isDark = theme === "dark";
       document.body.classList.toggle("dark", isDark);
-      themeToggle.textContent = isDark ? "Modo claro" : "Modo escuro";
+      themeToggle.textContent = isDark ? "?" : "?";
+    }
+
+    function accountLabel(account) {
+      return account?.username || account?.name || "";
+    }
+
+    function updateProtectedLinks() {
+      const account = msalApp?.getAllAccounts?.()[0];
+      const label = accountLabel(account);
+      protectedLinks.forEach((link) => link.classList.toggle("locked", !account));
+      sideAccount.textContent = label ? "Conta: " + label : "";
+      sideAccount.classList.toggle("hidden", !label);
+      loginMicrosoft.textContent = "Login";
+    }
+
+    async function loginMicrosoftAccount() {
+      if (!msalApp) return;
+      await msalApp.loginPopup({ scopes: graphConfig.scopes, prompt: "select_account" });
+      updateProtectedLinks();
     }
 
     applyTheme(localStorage.getItem(themeStorageKey) || "light");
+    updateProtectedLinks();
 
     function loadUploadedLogos() {
       try {
@@ -986,6 +1088,18 @@
       const nextTheme = document.body.classList.contains("dark") ? "light" : "dark";
       localStorage.setItem(themeStorageKey, nextTheme);
       applyTheme(nextTheme);
+    });
+    loginMicrosoft.addEventListener("click", () => {
+      loginMicrosoftAccount().catch(() => {
+        status.textContent = "Nao consegui fazer login Microsoft.";
+      });
+    });
+    protectedLinks.forEach((link) => {
+      link.addEventListener("click", (event) => {
+        if (!link.classList.contains("locked")) return;
+        event.preventDefault();
+        status.textContent = "Entre com sua conta Microsoft para acessar este link.";
+      });
     });
     document.querySelectorAll("[data-preset]").forEach((button) => {
       button.addEventListener("click", () => {
