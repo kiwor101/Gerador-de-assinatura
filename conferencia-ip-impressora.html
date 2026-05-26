@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Conferencia IP Impressora - Santa Casa</title>
+  <title>Conferência IP Impressora - Santa Casa</title>
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <style>
     :root {
@@ -199,10 +199,17 @@
 
     .side-nav .theme-toggle {
       order: 21;
+      display: inline-grid;
+      place-items: center;
       width: 38px;
       min-height: 34px;
       padding: 0;
-      font-size: 16px;
+    }
+
+    .theme-toggle svg {
+      display: block;
+      width: 17px;
+      height: 17px;
     }
 
     .side-nav .protected.locked {
@@ -236,7 +243,7 @@
     .top-account {
       position: fixed;
       top: 64px;
-      right: 24px;
+      left: 50%;
       z-index: 39;
       width: auto;
       max-width: 360px;
@@ -248,8 +255,9 @@
       padding: 7px 12px;
       font-size: 12px;
       line-height: 18px;
-      text-align: right;
+      text-align: center;
       box-shadow: 0 8px 20px rgba(9, 39, 92, 0.08);
+      transform: translateX(-50%);
     }
 
     button.danger {
@@ -363,7 +371,7 @@
 
     table {
       width: 100%;
-      min-width: 860px;
+      min-width: 720px;
       border-collapse: collapse;
       background: var(--panel);
       table-layout: fixed;
@@ -381,19 +389,17 @@
 
     th:nth-child(1),
     td:nth-child(1) {
-      width: 28%;
+      width: 34%;
     }
 
     th:nth-child(2),
-    td:nth-child(2),
-    th:nth-child(3),
-    td:nth-child(3) {
-      width: 22%;
+    td:nth-child(2) {
+      width: 24%;
     }
 
-    th:nth-child(4),
-    td:nth-child(4) {
-      width: 28%;
+    th:nth-child(3),
+    td:nth-child(3) {
+      width: 42%;
     }
 
     th {
@@ -462,6 +468,7 @@
         max-width: none;
         margin: 0;
         text-align: left;
+        transform: none;
       }
 
       .side-nav .login-button,
@@ -477,27 +484,27 @@
     <button class="secondary hidden" type="button" id="logout-sharepoint-header">Sair da conta</button>
     <a href="index.html">Home</a>
     <a class="protected locked" href="scripts-senhas.html?v=20260526-menu2">Emails</a>
-    <a class="protected locked" href="conferencia-ip-impressora.html?v=20260526-menu2">Conferencia</a>
+    <a class="protected locked" href="conferencia-ip-impressora.html?v=20260526-menu2">Conferência</a>
     <a class="protected locked" href="https://admin.cloud.microsoft/#/users" target="_blank" rel="noopener">Painel contas Microsoft</a>
     <a href="https://outlook.cloud.microsoft/" target="_blank" rel="noopener">Web Microsoft email</a>
     <a href="https://webmail-seguro.com.br/" target="_blank" rel="noopener">Web Localweb email</a>
-    <button type="button" id="theme-toggle" class="theme-toggle" title="Alternar tema">Tema</button>
+    <button type="button" id="theme-toggle" class="theme-toggle" title="Alternar tema" aria-label="Alternar tema"></button>
   </aside>
-  <div class="top-account hidden" id="account-pill">Conta logada: <strong id="account-name"></strong></div>
+  <div class="top-account hidden" id="account-pill">Conta conectada: <strong id="account-name"></strong></div>
   <main class="page">
     <header class="header">
-      <h1>Conferencia</h1>
+      <h1>Conferência</h1>
     </header>
 
     <section class="panel" id="auth-panel">
       <h2>Acesso Microsoft</h2>
-      <p class="note">Entre com sua conta Microsoft para carregar e salvar a conferencia de IP e impressoras no SharePoint.</p>
+      <p class="note">Entre com sua conta Microsoft para carregar e salvar a conferência de IP e impressoras no SharePoint.</p>
       <div class="status" id="auth-status" aria-live="polite"></div>
     </section>
 
     <section class="panel hidden" id="protected-content">
-      <h2>Conferencia IP Impressora</h2>
-      <p class="note">Preencha os campos com os mesmos nomes da lista do SharePoint. Cada item novo ou editado e salvo online.</p>
+      <h2>Conferência IP Impressora</h2>
+      <p class="note">Preencha os campos com os mesmos nomes da lista do SharePoint. Cada item novo ou editado é salvo online.</p>
       <div class="sync-bar">
         <span class="sync-status" id="sync-status">Conectado ao SharePoint.</span>
         <button class="secondary" type="button" id="refresh-list">Atualizar</button>
@@ -510,8 +517,8 @@
 
       <div class="add-form">
         <input id="add-nome-setor" type="text" placeholder="Nome/Setor">
-        <input id="add-ip-computador" type="text" placeholder="Ip Computador">
-        <input id="add-impressora-ip" type="text" placeholder="Impressora/Ip">
+        <input id="add-ip-computador" type="text" placeholder="IP Computador">
+        <input id="add-impressora-ip" type="text" placeholder="Impressora/IP">
         <button type="button" id="add-ip-row">Adicionar</button>
       </div>
 
@@ -521,9 +528,8 @@
           <thead>
             <tr>
               <th>Nome/Setor</th>
-              <th>Ip Computador</th>
-              <th>Impressora/Ip</th>
-              <th>Acoes</th>
+              <th>IP Computador</th>
+              <th>Impressora/IP</th>
             </tr>
           </thead>
           <tbody id="ip-list"></tbody>
@@ -580,7 +586,9 @@
     function applyTheme(theme) {
       const isDark = theme === "dark";
       document.body.classList.toggle("dark", isDark);
-      themeToggle.textContent = isDark ? "Sol" : "Lua";
+      themeToggle.innerHTML = isDark
+        ? '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2v3M12 19v3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M2 12h3M19 12h3M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'
+        : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 15.2A8.4 8.4 0 0 1 8.8 3.5 8.7 8.7 0 1 0 20.5 15.2Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>';
       themeToggle.setAttribute("aria-label", isDark ? "Ativar modo claro" : "Ativar modo escuro");
     }
 
@@ -697,7 +705,7 @@
     }
 
     async function getToken() {
-      if (!msalApp) throw new Error("Biblioteca Microsoft nao carregou.");
+      if (!msalApp) throw new Error("Biblioteca Microsoft não carregou.");
       const accounts = msalApp.getAllAccounts();
       graphState.account = accounts[0] || null;
       if (!graphState.account) {
@@ -740,7 +748,7 @@
       const filter = encodeURIComponent("displayName eq '" + displayName.replace(/'/g, "''") + "'");
       const data = await graph("/sites/" + siteId + "/lists?$filter=" + filter);
       const list = (data.value || [])[0];
-      if (!list) throw new Error("Lista nao encontrada: " + displayName);
+      if (!list) throw new Error("Lista não encontrada: " + displayName);
       return list.id;
     }
 
@@ -784,7 +792,7 @@
       document.getElementById("auth-panel").classList.add("hidden");
       document.getElementById("protected-content").classList.remove("hidden");
       authStatus.textContent = "";
-      syncStatus.textContent = "Conectado ao SharePoint. Alteracoes salvas automaticamente.";
+      syncStatus.textContent = "Conectado ao SharePoint. Alterações salvas automaticamente.";
       updateAccountInfo();
       renderIpRows();
     }
@@ -867,8 +875,8 @@
           return '<tr>' +
             '<td>' + editCell(row, "nome-setor", row.nomeSetor) + '</td>' +
             '<td>' + editCell(row, "ip-computador", row.ipComputador) + '</td>' +
-            '<td>' + editCell(row, "impressora-ip", row.impressoraIp) + '</td>' +
-            '<td><span class="row-actions">' +
+            '<td>' + editCell(row, "impressora-ip", row.impressoraIp) +
+            '<span class="row-actions">' +
               '<button type="button" class="small save-row" data-row-id="' + row.id + '">Salvar</button>' +
               '<button type="button" class="small secondary cancel-edit" data-row-id="' + row.id + '">Cancelar</button>' +
             '</span></td>' +
@@ -877,8 +885,8 @@
         return '<tr>' +
           '<td>' + displayCell(row.nomeSetor) + '</td>' +
           '<td>' + displayCell(row.ipComputador) + '</td>' +
-          '<td>' + displayCell(row.impressoraIp) + '</td>' +
-          '<td><span class="row-actions">' +
+          '<td>' + displayCell(row.impressoraIp) +
+          '<span class="row-actions">' +
             '<button type="button" class="small edit-row" data-row-id="' + row.id + '">Editar</button>' +
             '<button type="button" class="small danger delete-row" data-row-id="' + row.id + '">Excluir</button>' +
           '</span></td>' +
@@ -905,7 +913,7 @@
           try {
             await saveIpRow(row);
           } catch {
-            syncStatus.textContent = "Nao consegui salvar no SharePoint.";
+            syncStatus.textContent = "Não consegui salvar no SharePoint.";
             button.disabled = false;
           }
         });
@@ -918,7 +926,7 @@
           try {
             await deleteIpRow(row);
           } catch {
-            syncStatus.textContent = "Nao consegui excluir no SharePoint.";
+            syncStatus.textContent = "Não consegui excluir no SharePoint.";
             button.disabled = false;
           }
         });
@@ -946,7 +954,7 @@
         authStatus.textContent = "Conectando ao SharePoint...";
         await loadSharePointData();
       } catch {
-        authStatus.textContent = "Nao consegui conectar ao SharePoint. Use Sair / trocar conta e entre com uma conta autorizada.";
+        authStatus.textContent = "Não consegui conectar ao SharePoint. Use Sair / trocar conta e entre com uma conta autorizada.";
       }
     });
     protectedLinks.forEach((link) => {
@@ -962,14 +970,14 @@
         syncStatus.textContent = "Atualizando...";
         await loadSharePointData();
       } catch {
-        syncStatus.textContent = "Nao consegui atualizar a lista.";
+        syncStatus.textContent = "Não consegui atualizar a lista.";
       }
     });
     document.getElementById("add-ip-row").addEventListener("click", async () => {
       try {
         await addIpRow();
       } catch (error) {
-        syncStatus.textContent = "Nao consegui adicionar no SharePoint: " + friendlyGraphError(error);
+        syncStatus.textContent = "Não consegui adicionar no SharePoint: " + friendlyGraphError(error);
       }
     });
     ipSearch.addEventListener("input", renderIpRows);

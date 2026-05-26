@@ -324,6 +324,8 @@
     }
 
     .theme-toggle {
+      display: inline-grid;
+      place-items: center;
       width: 40px;
       min-height: 40px;
       border: 1px solid var(--line);
@@ -331,7 +333,12 @@
       background: var(--soft-bg);
       color: var(--blue);
       padding: 0;
-      font-size: 17px;
+    }
+
+    .theme-toggle svg {
+      display: block;
+      width: 17px;
+      height: 17px;
     }
 
     .side-nav {
@@ -452,7 +459,7 @@
     .top-account {
       position: fixed;
       top: 64px;
-      right: 24px;
+      left: 50%;
       z-index: 39;
       width: auto;
       max-width: 360px;
@@ -464,8 +471,9 @@
       padding: 7px 12px;
       font-size: 12px;
       line-height: 18px;
-      text-align: right;
+      text-align: center;
       box-shadow: 0 8px 20px rgba(9, 39, 92, 0.08);
+      transform: translateX(-50%);
     }
 
     .hidden {
@@ -553,6 +561,7 @@
         max-width: none;
         margin: 0;
         text-align: left;
+        transform: none;
       }
 
       .side-nav .login-button,
@@ -568,11 +577,11 @@
     <button class="secondary hidden" type="button" id="logout-microsoft">Sair da conta</button>
     <a href="index.html">Home</a>
     <a class="protected locked" href="scripts-senhas.html?v=20260526-menu2">Emails</a>
-    <a class="protected locked" href="conferencia-ip-impressora.html?v=20260526-menu2">Conferencia</a>
+    <a class="protected locked" href="conferencia-ip-impressora.html?v=20260526-menu2">Conferência</a>
     <a class="protected locked" href="https://admin.cloud.microsoft/#/users" target="_blank" rel="noopener">Painel contas Microsoft</a>
     <a href="https://outlook.cloud.microsoft/" target="_blank" rel="noopener">Web Microsoft email</a>
     <a href="https://webmail-seguro.com.br/" target="_blank" rel="noopener">Web Localweb email</a>
-    <button class="theme-toggle" type="button" id="theme-toggle" title="Alternar tema">Tema</button>
+    <button class="theme-toggle" type="button" id="theme-toggle" title="Alternar tema" aria-label="Alternar tema"></button>
   </aside>
   <div class="top-account hidden" id="side-account"></div>
   <main class="app">
@@ -823,7 +832,9 @@
     function applyTheme(theme) {
       const isDark = theme === "dark";
       document.body.classList.toggle("dark", isDark);
-      themeToggle.textContent = isDark ? "Sol" : "Lua";
+      themeToggle.innerHTML = isDark
+        ? '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2v3M12 19v3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M2 12h3M19 12h3M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'
+        : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 15.2A8.4 8.4 0 0 1 8.8 3.5 8.7 8.7 0 1 0 20.5 15.2Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>';
       themeToggle.setAttribute("aria-label", isDark ? "Ativar modo claro" : "Ativar modo escuro");
     }
 
@@ -835,7 +846,7 @@
       const account = msalApp?.getAllAccounts?.()[0];
       const label = accountLabel(account);
       protectedLinks.forEach((link) => link.classList.toggle("locked", !account));
-      sideAccount.textContent = label ? "Conta logada: " + label : "";
+      sideAccount.textContent = label ? "Conta conectada: " + label : "";
       sideAccount.classList.toggle("hidden", !label);
       logoutMicrosoft.classList.toggle("hidden", !label);
       loginMicrosoft.classList.toggle("hidden", !!label);
@@ -1174,7 +1185,7 @@
     async function copyImage() {
       const blob = await imageBlob();
       if (!window.ClipboardItem) {
-        status.textContent = "Este navegador nao permitiu copiar imagem. Use Baixar imagem PNG.";
+        status.textContent = "Este navegador não permitiu copiar imagem. Use Baixar imagem PNG.";
         return;
       }
       await navigator.clipboard.write([
@@ -1227,12 +1238,12 @@
     });
     logoutMicrosoft.addEventListener("click", () => {
       logoutMicrosoftAccount().catch(() => {
-        status.textContent = "Nao consegui sair da conta Microsoft.";
+        status.textContent = "Não consegui sair da conta Microsoft.";
       });
     });
     loginMicrosoft.addEventListener("click", () => {
       loginMicrosoftAccount().catch(() => {
-        status.textContent = "Nao consegui fazer login Microsoft.";
+        status.textContent = "Não consegui fazer login Microsoft.";
       });
     });
     protectedLinks.forEach((link) => {
