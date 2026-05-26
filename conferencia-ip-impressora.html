@@ -42,7 +42,7 @@
       background: var(--surface);
       color: var(--ink);
       font-family: Arial, Helvetica, sans-serif;
-      padding-right: 190px;
+      padding-left: 190px;
     }
 
     .page {
@@ -107,7 +107,7 @@
     .side-nav {
       position: fixed;
       top: 18px;
-      right: 18px;
+      left: 18px;
       z-index: 20;
       display: grid;
       gap: 8px;
@@ -135,12 +135,12 @@
     }
 
     .side-nav .theme-toggle {
-      justify-self: end;
-      width: 40px;
-      min-height: 40px;
-      border-radius: 999px;
-      padding: 0;
-      font-size: 17px;
+      justify-self: start;
+      width: 100%;
+      min-height: 38px;
+      border-radius: 6px;
+      padding: 0 10px;
+      font-size: 12px;
     }
 
     .side-nav .protected.locked {
@@ -169,6 +169,15 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+
+    .top-account {
+      width: min(1180px, calc(100% - 40px));
+      margin: 18px auto -12px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 18px;
+      text-align: right;
     }
 
     button.danger {
@@ -359,7 +368,7 @@
       }
 
       body {
-        padding-right: 0;
+        padding-left: 0;
       }
 
       .side-nav {
@@ -368,21 +377,28 @@
         margin: 14px auto 0;
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
+
+      .top-account {
+        width: min(720px, calc(100% - 28px));
+        margin: 12px auto -4px;
+        text-align: left;
+      }
     }
   </style>
 </head>
 <body>
   <aside class="side-nav" aria-label="Acessos">
     <button class="login-button" type="button" id="login-sharepoint">Login</button>
-    <span class="account-pill hidden" id="account-pill">Conta: <strong id="account-name"></strong></span>
-    <button class="secondary hidden" type="button" id="logout-sharepoint-header">Sair / trocar conta</button>
-    <a class="protected locked" href="scripts-senhas.html?v=20260526-menu1">Emails</a>
-    <a class="protected locked" href="conferencia-ip-impressora.html?v=20260526-menu1">Conferencia</a>
+    <button class="secondary hidden" type="button" id="logout-sharepoint-header">Sair da conta</button>
+    <a href="index.html">Home</a>
+    <a class="protected locked" href="scripts-senhas.html?v=20260526-menu2">Emails</a>
+    <a class="protected locked" href="conferencia-ip-impressora.html?v=20260526-menu2">Conferencia</a>
     <a class="protected locked" href="https://admin.cloud.microsoft/#/users" target="_blank" rel="noopener">Painel contas Microsoft</a>
     <a href="https://outlook.cloud.microsoft/" target="_blank" rel="noopener">Web Microsoft email</a>
     <a href="https://webmail-seguro.com.br/" target="_blank" rel="noopener">Web Localweb email</a>
-    <button type="button" id="theme-toggle" class="theme-toggle" title="Alternar tema">?</button>
+    <button type="button" id="theme-toggle" class="theme-toggle" title="Alternar tema">Tema</button>
   </aside>
+  <div class="top-account hidden" id="account-pill">Conta logada: <strong id="account-name"></strong></div>
   <main class="page">
     <header class="header">
       <h1>Conferencia</h1>
@@ -479,7 +495,7 @@
     function applyTheme(theme) {
       const isDark = theme === "dark";
       document.body.classList.toggle("dark", isDark);
-      themeToggle.textContent = isDark ? "?" : "?";
+      themeToggle.textContent = "Tema";
     }
 
     function escapeHtml(text) {
@@ -903,4 +919,5 @@
   </script>
 </body>
 </html>
+
 

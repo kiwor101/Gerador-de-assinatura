@@ -33,7 +33,7 @@
       background: var(--surface);
       color: var(--ink);
       font-family: Arial, Helvetica, sans-serif;
-      padding-right: 190px;
+      padding-left: 190px;
     }
 
     body.dark {
@@ -333,7 +333,7 @@
     .side-nav {
       position: fixed;
       top: 18px;
-      right: 18px;
+      left: 18px;
       z-index: 20;
       display: grid;
       gap: 8px;
@@ -361,8 +361,8 @@
     }
 
     .side-nav .theme-toggle {
-      justify-self: end;
-      width: 40px;
+      justify-self: start;
+      width: 100%;
     }
 
     .side-nav .protected.locked {
@@ -382,6 +382,15 @@
       line-height: 15px;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+
+    .top-account {
+      width: min(1180px, calc(100% - 40px));
+      margin: 18px auto -12px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 18px;
+      text-align: right;
     }
 
     .wide {
@@ -443,7 +452,7 @@
       }
 
       body {
-        padding-right: 0;
+        padding-left: 0;
       }
 
       .side-nav {
@@ -458,14 +467,16 @@
 <body>
   <aside class="side-nav" aria-label="Acessos">
     <button class="login-button" type="button" id="login-microsoft">Login</button>
-    <div class="side-account hidden" id="side-account"></div>
-    <a class="protected locked" href="scripts-senhas.html?v=20260526-menu1">Emails</a>
-    <a class="protected locked" href="conferencia-ip-impressora.html?v=20260526-menu1">Conferencia</a>
+    <button class="secondary hidden" type="button" id="logout-microsoft">Sair da conta</button>
+    <a href="index.html">Home</a>
+    <a class="protected locked" href="scripts-senhas.html?v=20260526-menu2">Emails</a>
+    <a class="protected locked" href="conferencia-ip-impressora.html?v=20260526-menu2">Conferencia</a>
     <a class="protected locked" href="https://admin.cloud.microsoft/#/users" target="_blank" rel="noopener">Painel contas Microsoft</a>
     <a href="https://outlook.cloud.microsoft/" target="_blank" rel="noopener">Web Microsoft email</a>
     <a href="https://webmail-seguro.com.br/" target="_blank" rel="noopener">Web Localweb email</a>
-    <button class="theme-toggle" type="button" id="theme-toggle" title="Alternar tema">?</button>
+    <button class="theme-toggle" type="button" id="theme-toggle" title="Alternar tema">Tema</button>
   </aside>
+  <div class="top-account hidden" id="side-account"></div>
   <main class="app">
     <section class="panel form-panel">
       <h1>Gerador de Assinatura</h1>
@@ -687,6 +698,7 @@
     const themeToggle = document.getElementById("theme-toggle");
     const loginMicrosoft = document.getElementById("login-microsoft");
     const sideAccount = document.getElementById("side-account");
+    const logoutMicrosoft = document.getElementById("logout-microsoft");
     const protectedLinks = Array.from(document.querySelectorAll(".side-nav .protected"));
     const graphConfig = {
       clientId: "9adc7394-4ea7-409b-bbe7-57c891f7a575",
@@ -705,7 +717,7 @@
     function applyTheme(theme) {
       const isDark = theme === "dark";
       document.body.classList.toggle("dark", isDark);
-      themeToggle.textContent = isDark ? "?" : "?";
+      themeToggle.textContent = "Tema";
     }
 
     function accountLabel(account) {
@@ -716,14 +728,22 @@
       const account = msalApp?.getAllAccounts?.()[0];
       const label = accountLabel(account);
       protectedLinks.forEach((link) => link.classList.toggle("locked", !account));
-      sideAccount.textContent = label ? "Conta: " + label : "";
+      sideAccount.textContent = label ? "Conta logada: " + label : "";
       sideAccount.classList.toggle("hidden", !label);
+      logoutMicrosoft.classList.toggle("hidden", !label);
       loginMicrosoft.textContent = "Login";
     }
 
     async function loginMicrosoftAccount() {
       if (!msalApp) return;
       await msalApp.loginPopup({ scopes: graphConfig.scopes, prompt: "select_account" });
+      updateProtectedLinks();
+    }
+
+    async function logoutMicrosoftAccount() {
+      if (!msalApp) return;
+      const account = msalApp.getAllAccounts()[0];
+      if (account) await msalApp.logoutPopup({ account, mainWindowRedirectUri: location.href, postLogoutRedirectUri: location.href });
       updateProtectedLinks();
     }
 
@@ -1089,6 +1109,11 @@
       localStorage.setItem(themeStorageKey, nextTheme);
       applyTheme(nextTheme);
     });
+    logoutMicrosoft.addEventListener("click", () => {
+      logoutMicrosoftAccount().catch(() => {
+        status.textContent = "Nao consegui sair da conta Microsoft.";
+      });
+    });
     loginMicrosoft.addEventListener("click", () => {
       loginMicrosoftAccount().catch(() => {
         status.textContent = "Nao consegui fazer login Microsoft.";
@@ -1153,4 +1178,5 @@
   </script>
 </body>
 </html>
+
 
