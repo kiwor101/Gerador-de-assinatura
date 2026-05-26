@@ -424,7 +424,6 @@
 
     .side-nav #logout-microsoft {
       order: 20;
-      margin-left: auto;
       min-width: 110px;
       min-height: 34px;
       padding: 0 14px;
@@ -457,23 +456,21 @@
     }
 
     .top-account {
-      position: fixed;
-      top: 64px;
-      left: 50%;
-      z-index: 39;
-      width: auto;
-      max-width: 360px;
-      margin: 0;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      background: var(--white);
+      order: 19;
+      overflow: hidden;
+      max-width: 260px;
+      margin-left: auto;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
       color: var(--muted);
-      padding: 7px 12px;
+      padding: 0 4px;
       font-size: 12px;
       line-height: 18px;
       text-align: center;
-      box-shadow: 0 8px 20px rgba(9, 39, 92, 0.08);
-      transform: translateX(-50%);
+      box-shadow: none;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .hidden {
@@ -561,7 +558,6 @@
         max-width: none;
         margin: 0;
         text-align: left;
-        transform: none;
       }
 
       .side-nav .login-button,
@@ -581,9 +577,9 @@
     <a class="protected locked" href="https://admin.cloud.microsoft/#/users" target="_blank" rel="noopener">Painel contas Microsoft</a>
     <a href="https://outlook.cloud.microsoft/" target="_blank" rel="noopener">Web Microsoft email</a>
     <a href="https://webmail-seguro.com.br/" target="_blank" rel="noopener">Web Localweb email</a>
-    <button class="theme-toggle" type="button" id="theme-toggle" title="Alternar tema" aria-label="Alternar tema"></button>
+    <div class="top-account hidden" id="side-account"></div>
+    <button class="theme-toggle" type="button" id="theme-toggle" title="Alternar tema" aria-label="Alternar tema"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 15.2A8.4 8.4 0 0 1 8.8 3.5 8.7 8.7 0 1 0 20.5 15.2Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></button>
   </aside>
-  <div class="top-account hidden" id="side-account"></div>
   <main class="app">
     <section class="panel form-panel">
       <h1>Gerador de Assinatura</h1>
@@ -846,7 +842,7 @@
       const account = msalApp?.getAllAccounts?.()[0];
       const label = accountLabel(account);
       protectedLinks.forEach((link) => link.classList.toggle("locked", !account));
-      sideAccount.textContent = label ? "Conta conectada: " + label : "";
+      sideAccount.textContent = label ? "Conta: " + label : "";
       sideAccount.classList.toggle("hidden", !label);
       logoutMicrosoft.classList.toggle("hidden", !label);
       loginMicrosoft.classList.toggle("hidden", !!label);

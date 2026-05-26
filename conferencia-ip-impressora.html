@@ -191,7 +191,6 @@
 
     .side-nav #logout-sharepoint-header {
       order: 20;
-      margin-left: auto;
       min-width: 110px;
       min-height: 34px;
       padding: 0 14px;
@@ -241,23 +240,21 @@
     }
 
     .top-account {
-      position: fixed;
-      top: 64px;
-      left: 50%;
-      z-index: 39;
-      width: auto;
-      max-width: 360px;
-      margin: 0;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      background: var(--panel);
+      order: 19;
+      overflow: hidden;
+      max-width: 260px;
+      margin-left: auto;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
       color: var(--muted);
-      padding: 7px 12px;
+      padding: 0 4px;
       font-size: 12px;
       line-height: 18px;
       text-align: center;
-      box-shadow: 0 8px 20px rgba(9, 39, 92, 0.08);
-      transform: translateX(-50%);
+      box-shadow: none;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     button.danger {
@@ -468,7 +465,6 @@
         max-width: none;
         margin: 0;
         text-align: left;
-        transform: none;
       }
 
       .side-nav .login-button,
@@ -488,9 +484,9 @@
     <a class="protected locked" href="https://admin.cloud.microsoft/#/users" target="_blank" rel="noopener">Painel contas Microsoft</a>
     <a href="https://outlook.cloud.microsoft/" target="_blank" rel="noopener">Web Microsoft email</a>
     <a href="https://webmail-seguro.com.br/" target="_blank" rel="noopener">Web Localweb email</a>
-    <button type="button" id="theme-toggle" class="theme-toggle" title="Alternar tema" aria-label="Alternar tema"></button>
+    <div class="top-account hidden" id="account-pill">Conta: <strong id="account-name"></strong></div>
+    <button type="button" id="theme-toggle" class="theme-toggle" title="Alternar tema" aria-label="Alternar tema"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 15.2A8.4 8.4 0 0 1 8.8 3.5 8.7 8.7 0 1 0 20.5 15.2Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></button>
   </aside>
-  <div class="top-account hidden" id="account-pill">Conta conectada: <strong id="account-name"></strong></div>
   <main class="page">
     <header class="header">
       <h1>Conferência</h1>
