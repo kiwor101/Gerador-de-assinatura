@@ -394,6 +394,7 @@
       <div class="actions">
         <a href="index.html">Voltar ao gerador</a>
         <a href="conferencia-ip-impressora.html?v=20260526">Conferencia IP Impressora</a>
+        <a href="https://admin.cloud.microsoft/#/users" target="_blank" rel="noopener">Painel contas Microsoft</a>
         <span class="account-pill hidden" id="account-pill">Conta: <strong id="account-name"></strong></span>
         <button class="secondary hidden" type="button" id="logout-sharepoint-header">Sair / trocar conta</button>
         <button type="button" id="theme-toggle">Modo escuro</button>
@@ -708,10 +709,15 @@ Atenciosamente,</textarea>
     function fieldPatch(columnMap, pairs) {
       const patch = {};
       pairs.forEach(([name, value]) => {
-        const key = columnMap[name] || columnMap[normalizeColumnName(name)] || name;
+        const key = writableFieldKey(columnMap[name] || columnMap[normalizeColumnName(name)] || name);
         patch[key] = value;
       });
       return patch;
+    }
+
+    function writableFieldKey(key) {
+      const normalized = normalizeColumnName(key);
+      return normalized.startsWith("linktitle") ? "Title" : key;
     }
 
     function applyColumnAliases(columnMap, groups) {
@@ -964,7 +970,7 @@ Atenciosamente,</textarea>
         ["EmailPrincipal", emailPrincipal],
         ["EmailNovo", emailNovo],
         ["Dono", dono],
-        ["Concluido", "N\u00e3o"]
+        ["Concluido", doneValue(false)]
       ]);
       if (!fields.Title) fields.Title = emailPrincipal || emailNovo;
       await graph("/sites/" + graphState.siteId + "/lists/" + graphState.migrationListId + "/items", {

@@ -455,10 +455,15 @@
     function fieldPatch(columnMap, pairs) {
       const patch = {};
       pairs.forEach(([name, value]) => {
-        const key = columnMap[name] || columnMap[normalizeColumnName(name)] || name;
+        const key = writableFieldKey(columnMap[name] || columnMap[normalizeColumnName(name)] || name);
         patch[key] = value;
       });
       return patch;
+    }
+
+    function writableFieldKey(key) {
+      const normalized = normalizeColumnName(key);
+      return normalized.startsWith("linktitle") ? "Title" : key;
     }
 
     function applyColumnAliases(columnMap, groups) {
