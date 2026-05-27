@@ -718,7 +718,7 @@
     const selectedLogoStorageKey = "santa-casa-selected-logo-v3";
     const logoLibrary = [
       { src: "assets/logos/logo-upload-original.jpg" },
-      { src: "assets/logos/logo-santa-casa-assinatura-720x300.png" },
+      { src: "assets/logos/logo-santa-casa-assinatura-720x300-transparente.png" },
       { src: "assets/logos/original-1-logo-santa-casa.png" },
       { src: "assets/logos/original-2-logo-santa-casa-assinatura.png" },
       { src: "assets/logos/original-3-logo-santa-casa.png" },
@@ -729,20 +729,20 @@
     ];
     const layouts = {
       classic: {
-        width: 620,
-        logoCell: 200,
-        logoWidth: 195,
-        gap: 10,
-        nameSize: 19,
-        textSize: 13,
-        roleSize: 13,
-        footerSize: 11
+        width: 600,
+        logoCell: 190,
+        logoWidth: 185,
+        gap: 8,
+        nameSize: 18,
+        textSize: 12,
+        roleSize: 12,
+        footerSize: 10
       },
       web: {
-        width: 560,
-        logoCell: 166,
-        logoWidth: 160,
-        gap: 9,
+        width: 540,
+        logoCell: 158,
+        logoWidth: 154,
+        gap: 8,
         nameSize: 16,
         textSize: 11,
         roleSize: 11,
@@ -1035,17 +1035,16 @@
 
       return '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:' + layout.width + 'px; max-width:' + layout.width + 'px; font-family:Arial, Helvetica, sans-serif; color:' + nameColor + '; border-collapse:collapse;">' +
         '<tr>' +
-          '<td style="padding:0 0 14px 0; border-bottom:2px solid ' + barColor + ';">' +
+          '<td style="padding:0 0 11px 0; border-bottom:2px solid ' + barColor + ';">' +
             '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%; border-collapse:collapse;">' +
               '<tr>' +
                 '<td valign="middle" style="width:' + layout.logoCell + 'px; padding:0 ' + layout.gap + 'px 0 0;">' +
                   '<img src="' + logo + '" width="' + layout.logoWidth + '" alt="Irmandade Santa Casa de Andradina" style="display:block; width:' + layout.logoWidth + 'px; height:auto; border:0; outline:none; text-decoration:none;">' +
                 '</td>' +
-                '<td valign="middle" style="width:1px; background:' + barColor + '; font-size:0; line-height:0;">&nbsp;</td>' +
-                '<td valign="middle" style="padding:0 0 0 ' + layout.gap + 'px;">' +
+                '<td valign="middle" style="padding:0;">' +
                   '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%; border-collapse:collapse;">' +
                     '<tr><td style="font-size:' + layout.nameSize + 'px; line-height:' + (layout.nameSize + 4) + 'px; font-weight:bold; color:' + nameColor + '; padding:0 0 3px 0;">' + name + '</td></tr>' +
-                    '<tr><td style="font-size:' + layout.roleSize + 'px; line-height:' + (layout.roleSize + 5) + 'px; color:#5b6470; padding:0 0 11px 0;">' + role + '</td></tr>' +
+                    '<tr><td style="font-size:' + layout.roleSize + 'px; line-height:' + (layout.roleSize + 5) + 'px; color:#5b6470; padding:0 0 8px 0;">' + role + '</td></tr>' +
                     rowsHtml +
                   '</table>' +
                 '</td>' +
@@ -1093,12 +1092,12 @@
       const width = layout.width;
       const rows = contactRows().filter((row) => row.value);
       const topPadding = 8;
-      const rowStartY = 73;
-      const rowStep = layout.textSize + 7;
-      const lastRowY = rows.length ? rowStartY + ((rows.length - 1) * rowStep) : 52;
-      const contentBottom = Math.max(112, lastRowY + 18);
-      const footerY = contentBottom + 18;
-      const noticeY = footerY + 17;
+      const rowStartY = 67;
+      const rowStep = layout.textSize + 6;
+      const lastRowY = rows.length ? rowStartY + ((rows.length - 1) * rowStep) : 48;
+      const contentBottom = Math.max(105, lastRowY + 16);
+      const footerY = contentBottom + 16;
+      const noticeY = footerY + 16;
       const height = noticeY + 10;
       const canvas = document.createElement("canvas");
       canvas.width = width * scale;
@@ -1113,17 +1112,15 @@
       const labelColor = color("label-color", "#b98a24");
       const barColor = color("bar-color", "#b98a24");
       const leftPadding = 0;
-      const dividerX = layout.logoCell;
-      const textX = dividerX + layout.gap;
+      const textX = layout.logoCell;
       const maxTextWidth = width - textX;
 
       ctx.fillStyle = barColor;
       ctx.fillRect(leftPadding, contentBottom, width, 2);
-      ctx.fillRect(dividerX, topPadding, 1, contentBottom - topPadding - 8);
 
       try {
         const logoImage = await loadImage(publicLogoSource(logoSource));
-        drawContainedImage(ctx, logoImage, 0, topPadding + 5, layout.logoCell - layout.gap, contentBottom - topPadding - 18);
+        drawContainedImage(ctx, logoImage, 0, topPadding + 5, layout.logoCell - layout.gap, contentBottom - topPadding - 16);
       } catch {
         ctx.fillStyle = "#f3f5f7";
         ctx.fillRect(0, topPadding + 5, layout.logoCell - layout.gap, contentBottom - topPadding - 18);
@@ -1140,13 +1137,13 @@
         minSize: 12,
         weight: "bold"
       });
-      fitText(ctx, roleLine(), textX, 52, maxTextWidth, {
+      fitText(ctx, roleLine(), textX, 49, maxTextWidth, {
         color: "#5b6470",
         size: layout.roleSize,
         minSize: 10
       });
 
-      let rowY = 73;
+      let rowY = 67;
       rows.forEach((row) => {
         const label = (row.htmlLabel || row.label).replace("Endere&ccedil;o:", "Endereço:");
         const labelText = label + " ";
@@ -1167,7 +1164,7 @@
             minSize: 9
           });
         }
-        rowY += layout.textSize + 7;
+        rowY += layout.textSize + 6;
       });
 
       ctx.fillStyle = "#7a828c";
