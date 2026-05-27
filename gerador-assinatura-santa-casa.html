@@ -673,7 +673,7 @@
           <input id="text-color" type="color" value="#1f2933">
         </div>
         <div class="color-field">
-          <span>Rotulos</span>
+          <span>R&oacute;tulos</span>
           <input id="label-color" type="color" value="#0b4c92">
         </div>
         <div class="color-field">
@@ -683,12 +683,12 @@
       </div>
 
       <div class="preset-grid">
-        <button class="preset" type="button" data-preset="default">Padrao</button>
+        <button class="preset" type="button" data-preset="default">Padr&atilde;o</button>
         <button class="preset" type="button" data-preset="blue">Azul</button>
         <button class="preset" type="button" data-preset="navy">Azul escuro</button>
         <button class="preset" type="button" data-preset="cyan">Azul claro</button>
         <button class="preset" type="button" data-preset="red">Vermelho</button>
-        <button class="preset" type="button" data-preset="water">Verde agua</button>
+        <button class="preset" type="button" data-preset="water">Verde &aacute;gua</button>
         <button class="preset" type="button" data-preset="goldBlack">Dourado preto</button>
       </div>
 
@@ -937,7 +937,7 @@
         logoSource = logoLibrary[0].src;
         localStorage.setItem(selectedLogoStorageKey, logoSource);
       }
-      status.textContent = "Logo excluida.";
+      status.textContent = "Logo excluída.";
       renderLogoLibrary();
       render();
     }
@@ -1002,7 +1002,7 @@
         { label: "Email:", value: withFixedDomain(value("email")), href: "mailto:" + withFixedDomain(value("email")) },
         { label: "Teams:", value: withFixedDomain(value("teams")) || withFixedDomain(value("email")) },
         { label: "Site:", value: fixedSite, href: "https://" + fixedSite },
-        { label: "Endereco:", htmlLabel: "Endere&ccedil;o:", value: fixedAddress, nowrap: true }
+        { label: "Endereço:", htmlLabel: "Endere&ccedil;o:", value: fixedAddress, nowrap: true }
       ];
     }
 
@@ -1127,7 +1127,7 @@
       } catch {
         ctx.fillStyle = "#f3f5f7";
         ctx.fillRect(0, topPadding + 5, layout.logoCell - layout.gap, contentBottom - topPadding - 18);
-        fitText(ctx, "Logo indisponivel", 14, 55, layout.logoCell - 28, {
+        fitText(ctx, "Logo indisponível", 14, 55, layout.logoCell - 28, {
           color: "#7a828c",
           size: 12,
           minSize: 9
@@ -1148,7 +1148,7 @@
 
       let rowY = 73;
       rows.forEach((row) => {
-        const label = (row.htmlLabel || row.label).replace("Endere&ccedil;o:", "Endereco:");
+        const label = (row.htmlLabel || row.label).replace("Endere&ccedil;o:", "Endereço:");
         const labelText = label + " ";
         ctx.font = "bold " + layout.textSize + "px Arial";
         ctx.fillStyle = labelColor;
@@ -1266,7 +1266,7 @@
       const input = document.getElementById("logo-url");
       const url = input.value.trim();
       if (!/^https?:\/\/.+\.(png|jpe?g|webp|gif)(\?.*)?$/i.test(url)) {
-        status.textContent = "Cole um link direto de imagem valido.";
+        status.textContent = "Cole um link direto de imagem válido.";
         return;
       }
       const uploadedLogo = { src: url };

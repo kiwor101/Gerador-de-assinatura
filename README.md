@@ -1,10 +1,16 @@
 # Gerador de Assinatura - Santa Casa de Andradina
 
-Gerador web simples para criar assinaturas de e-mail em HTML ou PNG para a Irmandade Santa Casa de Andradina.
+Site estático para gerar assinaturas de e-mail da Irmandade Santa Casa de Andradina e apoiar conferências internas da equipe de TI.
 
-O objetivo do projeto e facilitar a padronizacao das assinaturas dos colaboradores, mantendo telefone, site, endereco e identidade visual consistentes, mas permitindo alterar rapidamente nome, cargo, setor, ramal, e-mail, Teams, cores e logo.
+O projeto roda no GitHub Pages, não usa servidor próprio e integra as telas protegidas com Microsoft 365, Entra ID, Microsoft Graph e listas do SharePoint.
 
 ## Acesso
+
+Produção:
+
+```text
+https://geradorassinatura.santacasaandradina.org/
+```
 
 GitHub Pages:
 
@@ -12,164 +18,235 @@ GitHub Pages:
 https://kiwor101.github.io/Gerador-de-assinatura/
 ```
 
-Dominio personalizado:
+Repositório:
 
 ```text
-https://geradorassinatura.santacasaandradina.org/
+https://github.com/kiwor101/Gerador-de-assinatura
 ```
 
-Arquivo local principal:
+## Páginas
 
-```text
-index.html
-```
+`index.html`
 
-## Recursos
+Tela principal do gerador de assinatura.
 
-- Campos editaveis para nome, cargo, setor, ramal, e-mail e Teams.
-- Dominio fixo para e-mail e Teams: `@santacasaandradina.org`.
-- Telefone, site e endereco fixos da instituicao.
-- Biblioteca de logos com pre-visualizacao.
-- Inclusao de logo por link publico.
-- Inclusao de logo por arquivo local para teste.
-- Exclusao de logos adicionadas pelo usuario.
-- Presets de cores para ajustar a identidade visual.
+`gerador-assinatura-santa-casa.html`
+
+Cópia compatível da tela principal, mantida para links antigos.
+
+`scripts-senhas.html`
+
+Tela protegida por login Microsoft para script de comunicado, conferência de migração de e-mails e consulta de senhas internas.
+
+`conferencia-ip-impressora.html`
+
+Tela protegida por login Microsoft para conferir, adicionar, editar e excluir IPs de computadores e impressoras.
+
+## Gerador de Assinatura
+
+Recursos principais:
+
+- Campos para nome, cargo, setor, ramal, e-mail e Teams.
+- Domínio fixo para e-mail e Teams: `@santacasaandradina.org`.
+- Telefone, site e endereço fixos da instituição.
+- Logos salvas com prévia.
+- Inclusão de logo por link público.
+- Inclusão de logo por arquivo local apenas para teste.
+- Exclusão de logos adicionadas pelo usuário.
+- Presets de cores para campanhas ou ajustes visuais.
 - Modelos para Outlook Classic e Outlook Web compacto.
-- Geracao de assinatura em HTML.
-- Copia da assinatura pronta para colar no Outlook.
-- Geracao e download da assinatura como PNG.
-- Modo claro e modo escuro na interface do gerador.
-- Pagina auxiliar de script de e-mails com login Microsoft.
-- Pagina de conferencia de IP e impressoras ligada ao SharePoint.
-- Sincronizacao online com listas do SharePoint para a equipe autorizada.
-- Consulta de senha na conferencia, visivel somente depois do login Microsoft.
-- Icone de navegador para aba e favoritos.
+- Cópia da assinatura pronta para colar no Outlook.
+- Cópia ou download da assinatura como PNG.
+- Modo claro e modo escuro apenas na interface.
 
-## Como Usar
-
-1. Abra o gerador.
-2. Preencha os dados do colaborador.
-3. Escolha uma logo salva ou adicione uma logo por link.
-4. Ajuste as cores, se necessario.
-5. Escolha o modelo de assinatura.
-6. Use uma das opcoes de exportacao.
-
-## Opcoes de Exportacao
-
-`Copiar assinatura`
-
-Recomendado para Outlook Classic. Copia a assinatura pronta com HTML formatado.
-
-`Copiar PNG`
-
-Copia a assinatura como imagem unica. E uma alternativa quando o Outlook Web altera o layout do HTML.
-
-`Baixar PNG`
-
-Baixa a assinatura como imagem. Util quando o usuario prefere inserir a assinatura como arquivo de imagem.
+O fundo da assinatura e da PNG gerada permanece branco mesmo com o modo escuro ativo.
 
 ## Logos
 
-As logos fixas do projeto ficam em:
+As logos fixas ficam em:
 
 ```text
 assets/logos/
 ```
 
-Para novas logos, existem dois caminhos:
+Para assinatura oficial no Outlook, prefira `Adicionar logo por link`, usando uma URL pública e direta da imagem.
 
-- `Adicionar logo por link`: recomendado para uso real no Outlook. O link precisa ser publico e direto para a imagem.
-- `Adicionar nova logo`: serve apenas para teste local no navegador.
+O campo `Adicionar nova logo` usa arquivo local e serve apenas para teste no navegador. Ele não é recomendado para assinatura definitiva, porque o Outlook pode perder a imagem.
 
-Sites praticos para hospedar imagens gratuitamente:
+Sugestões gratuitas para gerar link público:
 
 - [Imgur](https://imgur.com/upload)
 - [ImgBB](https://imgbb.com/)
 - [Postimages](https://postimages.org/)
 
-Depois do upload, copie o link direto da imagem e cole no campo `Adicionar logo por link`.
+## Outlook
 
-## Observacoes Sobre Outlook
+`Copiar assinatura`
 
-O Outlook Classic costuma preservar melhor a assinatura em HTML.
+Recomendado para Outlook Classic. Copia a assinatura em HTML formatado.
 
-O Outlook Web pode alterar espacamentos, largura ou alinhamento do HTML. Quando isso acontecer, use a opcao PNG para manter a assinatura visualmente fixa.
+`Copiar PNG`
 
-Se a logo nao aparecer no Outlook, confira se ela usa um link publico direto. Caminhos locais ou arquivos salvos apenas no navegador nao sao confiaveis para assinatura oficial.
+Copia a assinatura como imagem, útil quando o Outlook Web altera espaçamentos do HTML.
 
-## Modo Escuro
+`Baixar PNG`
 
-O modo escuro muda apenas a interface do gerador.
+Baixa a assinatura como arquivo de imagem.
 
-A assinatura, a pre-visualizacao e a PNG gerada continuam com fundo branco para evitar problemas de leitura e compatibilidade no e-mail.
+## Área Protegida Microsoft
 
-## Script Emails
+A barra superior possui login Microsoft. Após entrar, os links protegidos ficam disponíveis:
 
-O botao `Script Emails` abre a pagina de scripts e conferencia de e-mails, protegida por login Microsoft.
+- `Emails`
+- `Conferência`
+- `Painel contas Microsoft`
 
-Use `Sair / trocar conta` quando o navegador entrar com uma conta sem permissao. Isso limpa a conta salva para permitir escolher outro usuario no proximo login.
+Links públicos continuam disponíveis sem login:
 
-Depois de entrar, a pagina carrega os dados da lista `Controle Migracao Emails` do SharePoint em uma tabela limpa dentro do proprio site.
+- `Home`
+- `Web Microsoft email`
+- `Web Localweb email`
 
-Essa tabela tambem pode exibir senha para pesquisa. A senha fica oculta por padrao, com botoes para revelar, ocultar novamente e copiar. O campo so aparece dentro da area protegida por login Microsoft.
+O botão `Sair da conta` limpa o login salvo no site e volta para a Home.
 
-As senhas nao dependem da coluna `Senha` no SharePoint. O site busca a senha em uma tabela fixa interna usando o valor de `EmailPrincipal` carregado da lista.
+## SharePoint
 
-Ao marcar ou desmarcar uma conferencia, a alteracao e salva diretamente no SharePoint.
+Site usado:
 
-Ao adicionar um novo item pela pagina, o site salva `EmailPrincipal`, `EmailNovo`, `Dono` e `Concluido` com valor `Nao`.
+```text
+santacasaandradina.sharepoint.com/sites/IRMANDADEDASANTACASADEANDRADINA-TECNOLOGIADAINFORMAO
+```
 
-A lista `Script Migracao Email` guarda o texto padrao de comunicacao da mudanca de e-mail. Ao editar o texto no site, ele tambem e salvo automaticamente no SharePoint.
+Listas usadas:
 
-O acesso depende de duas permissoes:
+- `Controle Migracao Emails`
+- `Script Migracao Email`
+- `Conferencia ip e impressoras`
 
-- O usuario precisa pertencer a organizacao Microsoft 365 da instituicao.
-- O usuario precisa ter permissao nas listas do SharePoint.
-- O aplicativo Entra precisa da permissao delegada `Sites.ReadWrite.All` com consentimento de administrador para ler e salvar itens nas listas.
+O usuário precisa ter permissão nessas listas para carregar e salvar dados.
 
-Na lista `Controle Migracao Emails`, o site usa `EmailPrincipal` para encontrar a senha correspondente no proprio arquivo do site. A coluna `Senha` no SharePoint nao e necessaria.
+## Emails
 
-## Conferencia IP Impressora
+A tela `Emails` carrega a lista `Controle Migracao Emails`.
 
-A pagina `Conferencia IP Impressora` e acessada a partir da tela `Script Emails`.
+Campos usados:
 
-Ela usa a mesma autenticacao Microsoft salva no navegador e carrega a lista `Conferencia ip e impressoras` do SharePoint.
+- `EmailPrincipal`
+- `EmailNovo`
+- `Dono`
+- `Concluido`
 
-Campos usados na lista:
+Funções:
+
+- Pesquisar por e-mail ou dono.
+- Marcar ou desmarcar item como concluído.
+- Adicionar novo item.
+- Consultar senha interna protegida por login.
+- Copiar senha quando necessário.
+- Editar o script padrão de comunicado.
+
+As senhas não são lidas do SharePoint. Elas ficam em uma tabela interna do próprio arquivo `scripts-senhas.html` e são localizadas pelo valor de `EmailPrincipal`.
+
+## Script de Comunicado
+
+A tela `Emails` também carrega a lista `Script Migracao Email`.
+
+O texto do comunicado é editável no site e salvo automaticamente no SharePoint.
+
+## Conferência IP Impressora
+
+A tela `Conferência` carrega a lista `Conferencia ip e impressoras`.
+
+Campos usados:
 
 - `Nome/Setor`
 - `Ip Computador`
 - `Impressora/Ip`
 
-Pela pagina do site e possivel adicionar, editar e excluir itens. As alteracoes sao salvas diretamente na lista do SharePoint.
+Funções:
+
+- Pesquisar por nome, setor ou IP.
+- Adicionar novo item.
+- Editar item existente.
+- Excluir item.
+- Salvar alterações diretamente no SharePoint.
+
+## Microsoft Entra
+
+Aplicativo usado para login e Microsoft Graph:
+
+```text
+Gerador Assinatura Santa Casa
+```
+
+Permissões necessárias:
+
+- `User.Read`
+- `Sites.ReadWrite.All`
+
+A permissão `Sites.ReadWrite.All` precisa de consentimento de administrador.
+
+URLs de redirecionamento usadas:
+
+```text
+https://geradorassinatura.santacasaandradina.org/
+https://geradorassinatura.santacasaandradina.org/scripts-senhas.html
+https://geradorassinatura.santacasaandradina.org/conferencia-ip-impressora.html
+https://kiwor101.github.io/Gerador-de-assinatura/
+https://kiwor101.github.io/Gerador-de-assinatura/scripts-senhas.html
+https://kiwor101.github.io/Gerador-de-assinatura/conferencia-ip-impressora.html
+```
 
 ## Estrutura
 
 ```text
 .
-|-- index.html
-|-- gerador-assinatura-santa-casa.html
-|-- scripts-senhas.html
-|-- conferencia-ip-impressora.html
-|-- assinatura-santa-casa.html
-|-- assinatura-santa-casa-exemplo.html
-|-- logo-santa-casa.png
+|-- .github/
+|   `-- workflows/
+|       `-- pages.yml
+|-- assets/
+|   |-- favicon.svg
+|   `-- logos/
+|-- importacao-microsoft-lists/
+|   |-- configuracoes-gerador.csv
+|   |-- configuracoes-gerador.xlsx
+|   |-- controle-migracao-emails.csv
+|   `-- controle-migracao-emails.xlsx
+|-- .gitignore
 |-- .nojekyll
-`-- assets/
-    |-- favicon.svg
-    `-- logos/
+|-- CNAME
+|-- conferencia-ip-impressora.html
+|-- gerador-assinatura-santa-casa.html
+|-- index.html
+|-- README.md
+`-- scripts-senhas.html
 ```
 
-## Publicacao no GitHub Pages
+## Publicação
 
-1. Suba os arquivos para o repositorio.
-2. Acesse `Settings` no GitHub.
-3. Entre em `Pages`.
-4. Selecione a branch principal e a pasta raiz.
-5. Salve e aguarde a publicacao.
+O projeto está configurado para GitHub Pages.
 
-O arquivo `.nojekyll` foi incluido para garantir que o GitHub Pages sirva os arquivos estaticos sem processamento adicional.
+Há um workflow em:
+
+```text
+.github/workflows/pages.yml
+```
+
+Ele publica o conteúdo estático da raiz do repositório no GitHub Pages.
+
+O arquivo `CNAME` mantém o domínio personalizado:
+
+```text
+geradorassinatura.santacasaandradina.org
+```
+
+## Cuidados
+
+- Não renomeie listas ou colunas do SharePoint sem ajustar o código.
+- Não remova URLs de redirecionamento do Entra sem atualizar o login.
+- Para logos oficiais, use sempre link público direto.
+- Não coloque senhas no SharePoint se a regra for manter a consulta dentro do arquivo protegido do site.
 
 ## Direitos
 
-Copyright (c) 2026 kiwors.
+Copyright © 2026 kiwors.
