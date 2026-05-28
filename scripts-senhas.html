@@ -463,6 +463,32 @@
       white-space: nowrap;
     }
 
+    .filter-tabs {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      min-height: 40px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--soft);
+    }
+
+    .filter-tabs button {
+      min-height: 30px;
+      padding: 0 12px;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .filter-tabs button.active {
+      background: var(--blue);
+      color: #fff;
+    }
+
     .sync-bar {
       display: flex;
       flex-wrap: wrap;
@@ -602,6 +628,11 @@ Atenciosamente,</textarea>
       </div>
       <div class="toolbar">
         <input id="migration-search" type="search" placeholder="Pesquisar por e-mail ou dono">
+        <div class="filter-tabs" aria-label="Filtrar conferencia">
+          <button type="button" class="active" data-migration-filter="pending">Pendentes</button>
+          <button type="button" data-migration-filter="done">Feitos</button>
+          <button type="button" data-migration-filter="all">Todos</button>
+        </div>
         <div class="summary" id="migration-summary">0 de 0 concluidos</div>
       </div>
       <div class="add-form">
@@ -799,6 +830,7 @@ Atenciosamente,</textarea>
     };
     const syncStatus = document.getElementById("sync-status");
     const migrationSearch = document.getElementById("migration-search");
+    let migrationFilter = "pending";
     let migrationData = [];
     let scriptSaveTimer = 0;
     let graphState = {
@@ -1160,7 +1192,15 @@ Atenciosamente,</textarea>
       const query = migrationSearch.value.trim().toLowerCase();
       const rows = migrationData.filter((row) => {
         const text = (row.emailPrincipal + " " + row.emailNovo + " " + row.dono).toLowerCase();
-        return !query || text.includes(query);
+        const matchesText = !query || text.includes(query);
+        const matchesFilter =
+          migrationFilter === "all" ||
+          (migrationFilter === "done" && row.done) ||
+          (migrationFilter === "pending" && !row.done);
+        return matchesText && matchesFilter;
+      }).slice().sort((a, b) => {
+        if (migrationFilter !== "all") return 0;
+        return Number(a.done) - Number(b.done);
       });
       const doneTotal = migrationData.filter((row) => row.done).length;
       document.getElementById("migration-summary").textContent = doneTotal + " de " + migrationData.length + " concluidos";
@@ -1269,6 +1309,15 @@ Atenciosamente,</textarea>
       }, 700);
     });
     migrationSearch.addEventListener("input", renderMigration);
+    document.querySelectorAll("[data-migration-filter]").forEach((button) => {
+      button.addEventListener("click", () => {
+        migrationFilter = button.dataset.migrationFilter;
+        document.querySelectorAll("[data-migration-filter]").forEach((item) => {
+          item.classList.toggle("active", item === button);
+        });
+        renderMigration();
+      });
+    });
     document.querySelector(".table-wrap").addEventListener("scroll", (event) => {
       document.getElementById("top-scroll").scrollLeft = event.target.scrollLeft;
     });
